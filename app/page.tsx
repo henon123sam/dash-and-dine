@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'interface' in globalThis ? {} : { useState, useEffect };
 
 interface UserAccount {
   email: string;
@@ -35,6 +35,22 @@ const mockFoodMenu: FoodItem[] = [
 export default function DashApp() {
   const [accounts, setAccounts] = useState<UserAccount[]>([]);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
+
+  // SEO Meta Tags & Document Title configuration
+  useEffect(() => {
+    document.title = "Dine & Dash - Food Delivery & Ride Hailing in Addis Ababa";
+    
+    let metaDescription = document.querySelector("meta[name='description']");
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta');
+      metaDescription.setAttribute('name', 'description');
+      document.head.appendChild(metaDescription);
+    }
+    metaDescription.setAttribute(
+      'content', 
+      'Order authentic traditional food, fast favorites, and reliable ride-hailing services instantly across Addis Ababa with Dine & Dash.'
+    );
+  }, []);
 
   useEffect(() => {
     const savedAccounts = localStorage.getItem('dash_app_accounts');
@@ -739,21 +755,21 @@ export default function DashApp() {
                       <p className="text-xs text-neutral-500 mt-1 leading-relaxed">{item.description}</p>
                     </div>
 
-                    <div className="mt-6 pt-4 border-t border-neutral-100 flex items-center justify-between">
-                      <span className="font-black text-base text-neutral-900">{item.price} ETB</span>
+                    <div className="mt-5 pt-4 border-t border-neutral-100 flex items-center justify-between">
+                      <span className="font-black text-neutral-900 text-base">{item.price} ETB</span>
                       
                       {inCartItem ? (
-                        <div className="flex items-center space-x-2 bg-neutral-100 p-1 rounded-xl">
+                        <div className="flex items-center bg-neutral-100 rounded-xl p-1 border border-neutral-200">
                           <button 
                             onClick={() => updateQuantity(item.id, -1)}
-                            className="w-7 h-7 bg-white rounded-lg shadow-sm font-bold flex items-center justify-center text-xs hover:bg-red-50 hover:text-red-600 transition"
+                            className="w-7 h-7 bg-white rounded-lg shadow-sm font-bold text-xs hover:bg-neutral-50 flex items-center justify-center"
                           >
                             -
                           </button>
-                          <span className="text-xs font-black px-1">{inCartItem.quantity}</span>
+                          <span className="px-3 text-xs font-black">{inCartItem.quantity}</span>
                           <button 
                             onClick={() => updateQuantity(item.id, 1)}
-                            className="w-7 h-7 bg-white rounded-lg shadow-sm font-bold flex items-center justify-center text-xs hover:bg-red-50 hover:text-red-600 transition"
+                            className="w-7 h-7 bg-white rounded-lg shadow-sm font-bold text-xs hover:bg-neutral-50 flex items-center justify-center"
                           >
                             +
                           </button>
@@ -761,7 +777,7 @@ export default function DashApp() {
                       ) : (
                         <button
                           onClick={() => addToCart(item)}
-                          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl text-xs transition shadow-sm"
+                          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold rounded-xl transition shadow-sm"
                         >
                           + Add to Cart
                         </button>
@@ -774,98 +790,66 @@ export default function DashApp() {
           </div>
         )}
 
-        {/* --- DASH SECTION (RIDE HILING & LIVE MAP MOCK) --- */}
+        {/* --- DASH SECTION (RIDE HAILED MOCKUP) --- */}
         {mainTab === 'dash' && (
-          <div className="space-y-6">
+          <div className="bg-white border border-neutral-200 rounded-3xl p-6 shadow-sm space-y-6">
             <div>
               <h2 className="text-2xl font-black text-neutral-900">Dash Ride Hailing</h2>
-              <p className="text-xs text-neutral-500 font-medium">Book a reliable ride across Addis Ababa instantly.</p>
+              <p className="text-xs text-neutral-500 font-medium">Quick, reliable transportation across Addis Ababa.</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Trip Control Panel */}
-              <div className="bg-white border border-neutral-200 rounded-3xl p-6 shadow-sm space-y-4 flex flex-col justify-between">
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-neutral-700 mb-1 uppercase tracking-wider">Pickup Location</label>
-                    <input
-                      type="text"
-                      className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-300 rounded-xl text-xs font-semibold text-neutral-800 focus:outline-none focus:ring-2 focus:ring-red-600"
-                      value={pickupLocation}
-                      onChange={(e) => setPickupLocation(e.target.value)}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-neutral-700 mb-1 uppercase tracking-wider">Destination</label>
-                    <input
-                      type="text"
-                      className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-300 rounded-xl text-xs font-semibold text-neutral-800 focus:outline-none focus:ring-2 focus:ring-red-600"
-                      value={destinationLocation}
-                      onChange={(e) => setDestinationLocation(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-2">
-                    <div className="flex justify-between text-xs font-bold text-neutral-600">
-                      <span>Estimated Fare:</span>
-                      <span className="text-neutral-900 font-black">250 ETB</span>
-                    </div>
-                    <div className="flex justify-between text-xs font-bold text-neutral-600">
-                      <span>Estimated Time:</span>
-                      <span className="text-neutral-900 font-black">15 mins</span>
-                    </div>
-                  </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-neutral-700 mb-1 uppercase tracking-wider">Pickup Location</label>
+                  <input
+                    type="text"
+                    value={pickupLocation}
+                    onChange={(e) => setPickupLocation(e.target.value)}
+                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-300 rounded-xl text-sm font-semibold text-neutral-800"
+                  />
                 </div>
 
-                <button
-                  onClick={() => setTripActive(!tripActive)}
-                  className={`w-full py-3 rounded-xl font-extrabold text-xs transition shadow-md ${
-                    tripActive ? 'bg-neutral-900 hover:bg-neutral-800 text-white' : 'bg-red-600 hover:bg-red-700 text-white'
-                  }`}
-                >
-                  {tripActive ? 'Cancel Ride' : 'Request Dash Ride'}
-                </button>
+                <div>
+                  <label className="block text-xs font-bold text-neutral-700 mb-1 uppercase tracking-wider">Destination</label>
+                  <input
+                    type="text"
+                    value={destinationLocation}
+                    onChange={(e) => setDestinationLocation(e.target.value)}
+                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-300 rounded-xl text-sm font-semibold text-neutral-800"
+                  />
+                </div>
+
+                <div className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-extrabold text-red-700 uppercase tracking-wide">Estimated Fare</span>
+                    <p className="text-lg font-black text-neutral-900">350.00 ETB</p>
+                  </div>
+                  <button
+                    onClick={() => setTripActive(!tripActive)}
+                    className={`px-6 py-3 rounded-xl font-extrabold text-xs transition shadow-md ${
+                      tripActive ? 'bg-neutral-800 hover:bg-neutral-900 text-white' : 'bg-red-600 hover:bg-red-700 text-white'
+                    }`}
+                  >
+                    {tripActive ? 'Cancel Ride' : 'Request Dash Ride'}
+                  </button>
+                </div>
               </div>
 
-              {/* Interactive Map Mock */}
-              <div className="lg:col-span-2 bg-white border border-neutral-200 rounded-3xl p-6 shadow-sm flex flex-col h-[400px] relative overflow-hidden">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-extrabold uppercase tracking-wider text-neutral-500">Live Radar View</span>
-                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${tripActive ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                    {tripActive ? 'Driver Assigned & En Route' : 'Searching for nearby drivers...'}
-                  </span>
+              {/* Map Simulator Graphic */}
+              <div className="bg-neutral-900 rounded-2xl p-6 text-white flex flex-col justify-between relative overflow-hidden min-h-[240px]">
+                <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                <div className="relative z-10 flex justify-between items-start">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest bg-red-600 text-white px-2.5 py-1 rounded-md">Live GPS Map</span>
+                  <span className="text-xs font-bold text-neutral-400">{tripActive ? 'Driver en route 🚗' : 'Ready to match'}</span>
                 </div>
-
-                {/* Map Box Mock */}
-                <div className="flex-1 bg-neutral-900 rounded-2xl relative flex items-center justify-center overflow-hidden border border-neutral-800">
-                  {/* Grid lines background decoration */}
-                  <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
-
-                  {/* Route line simulation */}
-                  <div className="absolute w-3/4 h-1 bg-red-500/50 rounded-full transform -rotate-12 animate-pulse"></div>
-
-                  {/* Pins */}
-                  <div className="absolute left-1/4 top-1/3 flex flex-col items-center">
-                    <span className="bg-white text-neutral-900 text-[10px] font-bold px-2 py-0.5 rounded shadow mb-1">Pickup</span>
-                    <div className="w-4 h-4 bg-red-600 rounded-full border-2 border-white shadow-lg animate-ping absolute"></div>
-                    <div className="w-4 h-4 bg-red-600 rounded-full border-2 border-white shadow-lg"></div>
-                  </div>
-
-                  <div className="absolute right-1/4 bottom-1/3 flex flex-col items-center">
-                    <span className="bg-white text-neutral-900 text-[10px] font-bold px-2 py-0.5 rounded shadow mb-1">Destination</span>
-                    <div className="w-4 h-4 bg-neutral-900 rounded-full border-2 border-white shadow-lg"></div>
-                  </div>
-
-                  {tripActive && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
-                      <div className="bg-white px-6 py-4 rounded-2xl shadow-xl text-center space-y-1">
-                        <span className="text-2xl">🚗</span>
-                        <p className="text-xs font-black text-neutral-900">Your driver is arriving in 3 mins</p>
-                        <p className="text-[11px] text-neutral-500 font-medium">Toyota Corolla • Plate 2-44102</p>
-                      </div>
-                    </div>
-                  )}
+                <div className="relative z-10 my-auto text-center py-6">
+                  <div className="text-3xl mb-2">{tripActive ? '📍' : '🚗'}</div>
+                  <p className="text-sm font-bold text-neutral-200">{tripActive ? `Heading from ${pickupLocation}` : 'Enter destination to request your ride'}</p>
+                </div>
+                <div className="relative z-10 text-[11px] text-neutral-400 border-t border-neutral-800 pt-3 flex justify-between">
+                  <span>ETA: ~6 mins</span>
+                  <span>Addis Ababa, ET</span>
                 </div>
               </div>
             </div>
@@ -874,57 +858,58 @@ export default function DashApp() {
 
         {/* --- CART SECTION --- */}
         {mainTab === 'cart' && (
-          <div className="space-y-6 max-w-2xl mx-auto">
+          <div className="bg-white border border-neutral-200 rounded-3xl p-6 shadow-sm space-y-6">
             <div>
-              <h2 className="text-2xl font-black text-neutral-900">Your Order Cart</h2>
-              <p className="text-xs text-neutral-500 font-medium">Review your items before final checkout.</p>
+              <h2 className="text-2xl font-black text-neutral-900">Your Shopping Cart</h2>
+              <p className="text-xs text-neutral-500 font-medium">Review your items before placing your order.</p>
             </div>
 
             {cart.length === 0 ? (
-              <div className="bg-white border border-neutral-200 rounded-3xl p-12 text-center space-y-3">
+              <div className="text-center py-16 space-y-3">
                 <span className="text-5xl">🛒</span>
-                <p className="text-sm font-bold text-neutral-700">Your cart is currently empty.</p>
+                <p className="text-sm font-bold text-neutral-600">Your cart is currently empty.</p>
                 <button
                   onClick={() => setMainTab('dine')}
-                  className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl text-xs transition shadow-sm inline-block"
+                  className="px-5 py-2.5 bg-red-600 text-white text-xs font-extrabold rounded-xl hover:bg-red-700 transition"
                 >
-                  Explore Menu
+                  Browse Dine Menu
                 </button>
               </div>
             ) : (
-              <div className="bg-white border border-neutral-200 rounded-3xl p-6 shadow-sm space-y-6">
+              <div className="space-y-4">
                 <div className="divide-y divide-neutral-100">
                   {cart.map((item) => (
-                    <div key={item.id} className="py-4 flex items-center justify-between first:pt-0 last:pb-0">
-                      <div className="flex items-center space-x-4">
+                    <div key={item.id} className="py-4 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
                         <span className="text-3xl bg-neutral-50 p-2.5 rounded-2xl border border-neutral-100">{item.image}</span>
                         <div>
-                          <h4 className="font-bold text-sm text-neutral-900">{item.name}</h4>
-                          <span className="text-xs text-neutral-500">{item.price} ETB each</span>
+                          <h4 className="font-bold text-neutral-900 text-sm">{item.name}</h4>
+                          <p className="text-xs text-neutral-500">{item.price} ETB each</p>
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-2 bg-neutral-100 p-1 rounded-xl">
+                      <div className="flex items-center gap-6">
+                        <div className="flex items-center bg-neutral-100 rounded-xl p-1 border border-neutral-200">
                           <button 
                             onClick={() => updateQuantity(item.id, -1)}
-                            className="w-6 h-6 bg-white rounded-lg shadow-sm font-bold flex items-center justify-center text-xs hover:bg-red-50 hover:text-red-600 transition"
+                            className="w-7 h-7 bg-white rounded-lg shadow-sm font-bold text-xs hover:bg-neutral-50 flex items-center justify-center"
                           >
                             -
                           </button>
-                          <span className="text-xs font-black px-1">{item.quantity}</span>
+                          <span className="px-3 text-xs font-black">{item.quantity}</span>
                           <button 
                             onClick={() => updateQuantity(item.id, 1)}
-                            className="w-6 h-6 bg-white rounded-lg shadow-sm font-bold flex items-center justify-center text-xs hover:bg-red-50 hover:text-red-600 transition"
+                            className="w-7 h-7 bg-white rounded-lg shadow-sm font-bold text-xs hover:bg-neutral-50 flex items-center justify-center"
                           >
                             +
                           </button>
                         </div>
-                        <span className="font-black text-sm text-neutral-900 w-16 text-right">{item.price * item.quantity} ETB</span>
+
+                        <span className="font-black text-neutral-900 text-sm w-20 text-right">{item.price * item.quantity} ETB</span>
+
                         <button
                           onClick={() => removeFromCart(item.id)}
-                          className="text-neutral-400 hover:text-red-600 text-xs font-bold transition p-1"
-                          title="Remove item"
+                          className="text-neutral-400 hover:text-red-600 font-bold text-sm px-2 py-1 transition"
                         >
                           ✕
                         </button>
@@ -933,30 +918,22 @@ export default function DashApp() {
                   ))}
                 </div>
 
-                <div className="border-t border-neutral-200 pt-4 space-y-2">
-                  <div className="flex justify-between text-xs text-neutral-600 font-semibold">
-                    <span>Subtotal</span>
-                    <span>{getTotalCartPrice()} ETB</span>
+                <div className="pt-6 border-t border-neutral-200 flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Total Amount</span>
+                    <p className="text-2xl font-black text-neutral-900">{getTotalCartPrice()} ETB</p>
                   </div>
-                  <div className="flex justify-between text-xs text-neutral-600 font-semibold">
-                    <span>Delivery Fee</span>
-                    <span>50 ETB</span>
-                  </div>
-                  <div className="flex justify-between text-base font-black text-neutral-900 pt-2 border-t border-neutral-100">
-                    <span>Total</span>
-                    <span>{getTotalCartPrice() + 50} ETB</span>
-                  </div>
-                </div>
 
-                <button
-                  onClick={() => {
-                    alert('Order successfully placed! Your food is being prepared.');
-                    setCart([]);
-                  }}
-                  className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl transition shadow-md text-sm"
-                >
-                  Proceed to Checkout ({getTotalCartPrice() + 50} ETB)
-                </button>
+                  <button
+                    onClick={() => {
+                      alert('Order successfully placed! Thank you for ordering with Dine & Dash.');
+                      setCart([]);
+                    }}
+                    className="px-8 py-3.5 bg-red-600 hover:bg-red-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition"
+                  >
+                    Checkout Order Now
+                  </button>
+                </div>
               </div>
             )}
           </div>
