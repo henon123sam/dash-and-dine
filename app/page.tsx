@@ -52,49 +52,30 @@ export default function DineAndDashApp() {
   return <MainDashboardScreen userEmail={loggedInUser} onSignOut={() => setLoggedInUser(null)} />;
 }
 
-// --- Advanced Authentication Component (Uber / BeU Style Flow) ---
+// --- Streamlined Authentication Component ---
 function AuthScreen({ onLoggedIn }: { onLoggedIn: (identifier: string) => void }) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [step, setStep] = useState<'input' | 'password' | 'otp' | 'forgot'>('input');
   
   // Form fields
-  const [identifier, setIdentifier] = useState(''); // email, phone, or username
+  const [name, setName] = useState('');
+  const [identifier, setIdentifier] = useState(''); // email or phone
   const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
   const [otpCode, setOtpCode] = useState('');
-  const [accountExistsCheck, setAccountExistsCheck] = useState<boolean | null>(null);
 
-  // Determine input type (email, phone, or username)
-  const classifyInput = (val: string) => {
-    if (val.includes('@')) return 'email';
-    if (/^\+?[0-9]{9,13}$/.test(val.replace(/\s+/g, ''))) return 'phone';
-    return 'username';
-  };
+  const isEmail = (val: string) => val.includes('@');
 
   const handleNextStep = (e: React.FormEvent) => {
     e.preventDefault();
     if (!identifier.trim()) {
-      alert('Please enter your email, phone number, or username.');
+      alert('Please enter your email or phone number.');
       return;
     }
 
-    const type = classifyInput(identifier);
-
-    if (!isSignUp) {
-      // SIGN IN FLOW
-      if (type === 'phone') {
-        // Phone login triggers SMS OTP like Uber/BeU
-        setStep('otp');
-      } else {
-        // Email or Username requires password + Microsoft-style check
-        setAccountExistsCheck(true); 
-        setStep('password');
-      }
-    } else {
-      // CREATE ACCOUNT FLOW
+    if (isEmail(identifier)) {
       setStep('password');
+    } else {
+      setStep('otp'); // Phone triggers SMS verification
     }
   };
 
@@ -102,7 +83,7 @@ function AuthScreen({ onLoggedIn }: { onLoggedIn: (identifier: string) => void }
     e.preventDefault();
     if (step === 'otp') {
       if (otpCode.length < 4) {
-        alert('Please enter a valid 4-digit SMS verification code.');
+        alert('Please enter a valid 4-digit verification code.');
         return;
       }
       onLoggedIn(identifier);
@@ -115,13 +96,9 @@ function AuthScreen({ onLoggedIn }: { onLoggedIn: (identifier: string) => void }
     }
   };
 
-  const handleForgotPassword = () => {
-    setStep('forgot');
-  };
-
   const handleSendResetLink = (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`Password reset instructions have been sent to ${identifier}`);
+    alert(`Password reset instructions sent to ${identifier}`);
     setStep('input');
   };
 
@@ -151,49 +128,34 @@ function AuthScreen({ onLoggedIn }: { onLoggedIn: (identifier: string) => void }
           </button>
         </div>
 
-        {/* STEP 1: INITIAL IDENTIFIER INPUT */}
+        {/* STEP 1: INITIAL INPUT */}
         {step === 'input' && (
           <form onSubmit={handleNextStep} className="space-y-4">
+            {isSignUp && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+                <input
+                  type="text"
+                  required={isSignUp}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
+                  placeholder="Abebe Kebede"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+            )}
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {isSignUp ? 'Choose a Unique Username' : 'Email, Phone Number, or Username'}
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email or Phone Number</label>
               <input
                 type="text"
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
-                placeholder={isSignUp ? 'e.g. boldelivery_king' : 'name@example.com, phone, or username'}
+                placeholder="name@example.com or +251..."
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
               />
             </div>
-
-            {isSignUp && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                  <input
-                    type="email"
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
-                    placeholder="user@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                  <input
-                    type="tel"
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
-                    placeholder="+251 91 234 5678"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                  />
-                </div>
-              </>
-            )}
 
             <button
               type="submit"
@@ -204,7 +166,7 @@ function AuthScreen({ onLoggedIn }: { onLoggedIn: (identifier: string) => void }
           </form>
         )}
 
-        {/* STEP 2A: PASSWORD ENTRY (Microsoft Style verification / Account check feedback) */}
+        {/* STEP 2A: EMAIL PASSWORD MENU */}
         {step === 'password' && (
           <form onSubmit={handleFinalSubmit} className="space-y-4">
             <div className="bg-orange-50 p-3 rounded-xl border border-orange-100 flex items-center justify-between mb-2">
@@ -217,12 +179,6 @@ function AuthScreen({ onLoggedIn }: { onLoggedIn: (identifier: string) => void }
                 Switch
               </button>
             </div>
-
-            {accountExistsCheck && !isSignUp && (
-              <div className="text-xs text-emerald-600 font-medium bg-emerald-50 p-2 rounded-lg border border-emerald-100 mb-2">
-                ✓ Account found with this identifier. Please enter your password.
-              </div>
-            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
@@ -240,7 +196,7 @@ function AuthScreen({ onLoggedIn }: { onLoggedIn: (identifier: string) => void }
               <div className="text-right">
                 <button
                   type="button"
-                  onClick={handleForgotPassword}
+                  onClick={() => setStep('forgot')}
                   className="text-xs text-orange-600 font-semibold hover:underline"
                 >
                   Forgot password?
@@ -257,7 +213,7 @@ function AuthScreen({ onLoggedIn }: { onLoggedIn: (identifier: string) => void }
           </form>
         )}
 
-        {/* STEP 2B: SMS OTP VERIFICATION (For Phone Numbers - Uber / BeU Style) */}
+        {/* STEP 2B: PHONE SMS OTP VERIFICATION */}
         {step === 'otp' && (
           <form onSubmit={handleFinalSubmit} className="space-y-4">
             <div className="bg-orange-50 p-3 rounded-xl border border-orange-100 flex items-center justify-between mb-2">
@@ -297,12 +253,12 @@ function AuthScreen({ onLoggedIn }: { onLoggedIn: (identifier: string) => void }
         {step === 'forgot' && (
           <form onSubmit={handleSendResetLink} className="space-y-4">
             <p className="text-xs text-gray-600 mb-2">
-              Enter your email or phone number associated with your account, and we&apos;ll send you recovery instructions.
+              Enter your email address and we&apos;ll send you recovery instructions.
             </p>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email or Phone Number</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
               <input
-                type="text"
+                type="email"
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
                 placeholder="user@example.com"
@@ -395,19 +351,18 @@ function MainDashboardScreen({ userEmail, onSignOut }: { userEmail: string; onSi
 
   const totalItemCount = Object.values(userCart).reduce((sum, entry) => sum + entry.quantity, 0);
   const subtotalPrice = Object.values(userCart).reduce((sum, entry) => sum + entry.item.price * entry.quantity, 0);
-  const kitchenPrepTax = subtotalPrice * 0.10; // 10% Kitchen Prep Tax
+  const kitchenPrepTax = subtotalPrice * 0.10;
   const deliveryFee = 150.0;
   const finalTotalPrice = subtotalPrice + kitchenPrepTax + (totalItemCount > 0 ? deliveryFee : 0);
 
   const handleConfirmOrder = () => {
-    alert(`Order submitted successfully! Sent to kitchen and will be delivered to: ${deliveryAddress}`);
+    alert(`Order submitted successfully! Sent to kitchen and delivered to: ${deliveryAddress}`);
     setUserCart({});
     setIsCheckoutOpen(false);
   };
 
   return (
     <div className="min-h-screen bg-[#FFFBF7] pb-32">
-      {/* Top Header */}
       <header className="flex justify-between items-center px-6 py-4 max-w-4xl mx-auto border-b border-gray-100 bg-white shadow-xs">
         <div>
           <h1 className="text-xl font-extrabold text-gray-900">Dine & Dash 🚀</h1>
@@ -427,7 +382,6 @@ function MainDashboardScreen({ userEmail, onSignOut }: { userEmail: string; onSi
         </div>
       </header>
 
-      {/* Category Pills */}
       <div className="max-w-4xl mx-auto px-6 overflow-x-auto flex gap-2 py-4">
         {categories.map((cat) => (
           <button
@@ -442,7 +396,6 @@ function MainDashboardScreen({ userEmail, onSignOut }: { userEmail: string; onSi
         ))}
       </div>
 
-      {/* Menu List */}
       <main className="max-w-4xl mx-auto px-6 mt-2 space-y-3">
         {displayedItems.map((item) => {
           const cartKey = `${item.restaurant}-${item.name}`;
@@ -481,7 +434,6 @@ function MainDashboardScreen({ userEmail, onSignOut }: { userEmail: string; onSi
         })}
       </main>
 
-      {/* Floating Bottom Cart Bar */}
       <div className="fixed bottom-6 left-0 right-0 px-6 flex justify-center z-40">
         <div className="w-full max-w-md bg-white/95 backdrop-blur-md h-16 px-6 rounded-full shadow-2xl flex items-center justify-between border border-gray-200">
           <div className="relative flex items-center justify-center w-10 h-10 bg-orange-100 rounded-full text-orange-700 font-bold">
@@ -500,7 +452,6 @@ function MainDashboardScreen({ userEmail, onSignOut }: { userEmail: string; onSi
         </div>
       </div>
 
-      {/* Checkout Menu Drawer / Modal */}
       {isCheckoutOpen && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center backdrop-blur-xs">
           <div className="bg-white w-full max-w-lg rounded-t-3xl p-6 max-h-[90vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-200">
@@ -510,7 +461,6 @@ function MainDashboardScreen({ userEmail, onSignOut }: { userEmail: string; onSi
               <button onClick={() => setIsCheckoutOpen(false)} className="text-gray-400 hover:text-gray-600 font-bold text-lg w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">✕</button>
             </div>
 
-            {/* Delivery details inputs */}
             <div className="space-y-3 mb-4 bg-gray-50 p-3.5 rounded-2xl border border-gray-200">
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">Delivery Address (Bole Area)</label>
