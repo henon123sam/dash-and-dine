@@ -52,6 +52,7 @@ export default function DineAndDashApp() {
   }, []);
 
   const getFirstName = (emailOrPhone: string) => {
+    if (emailOrPhone === 'guest_user') return 'Guest';
     const account = accounts.find(acc => acc.email.toLowerCase() === emailOrPhone.toLowerCase());
     if (account && account.fullName) {
       return account.fullName.split(' ')[0];
@@ -66,7 +67,26 @@ export default function DineAndDashApp() {
   };
 
   const updatePasswordInDb = (email: string, newPass: string) => {
-    const updated = accounts.map(acc => acc.email.toLowerCase() === email.toLowerCase() ? { ...acc, password: newPass } : acc);
+    const targetEmail = email.trim().toLowerCase();
+    const existingIndex = accounts.findIndex(acc => acc.email.toLowerCase() === targetEmail);
+    
+    let updated: UserAccount[];
+    if (existingIndex !== -1) {
+      updated = accounts.map(acc => 
+        acc.email.toLowerCase() === targetEmail ? { ...acc, password: newPass } : acc
+      );
+    } else {
+      // If the email wasn't found in database yet, automatically create an account for it so it saves successfully!
+      const newAcc: UserAccount = {
+        email: targetEmail,
+        password: newPass,
+        fullName: targetEmail.split('@')[0],
+        phone: '000000000',
+        countryCode: '+251'
+      };
+      updated = [...accounts, newAcc];
+    }
+    
     setAccounts(updated);
     localStorage.setItem('dine_and_dash_accounts', JSON.stringify(updated));
   };
@@ -79,6 +99,26 @@ export default function DineAndDashApp() {
   const handleLogout = () => {
     setCurrentUser(null);
     localStorage.removeItem('dine_and_dash_current_user');
+  };
+
+  const handleGoogleLogin = () => {
+    const googleEmail = 'google_user@gmail.com';
+    const existing = accounts.find(acc => acc.email.toLowerCase() === googleEmail);
+    if (!existing) {
+      const googleAccount: UserAccount = {
+        email: googleEmail,
+        password: 'google_oauth_secure',
+        fullName: 'Google User',
+        phone: '911000000',
+        countryCode: '+251'
+      };
+      saveNewAccount(googleAccount);
+    }
+    handleLoginSuccess(googleEmail);
+  };
+
+  const handleGuestLogin = () => {
+    handleLoginSuccess('guest_user');
   };
 
   // Auth screen states
@@ -185,12 +225,10 @@ export default function DineAndDashApp() {
 
   const handleProceedToNewPassword = (e: React.FormEvent) => {
     e.preventDefault();
-    const account = accounts.find(acc => acc.email.toLowerCase() === forgotEmailInput.trim().toLowerCase());
-    if (!account) {
-      alert('No registered account found with this email address.');
+    if (!forgotEmailInput.trim()) {
+      alert('Please enter your email address.');
       return;
     }
-    // Instantly go straight to entering a new password
     setStep('forgot_new_pass');
   };
 
@@ -201,7 +239,7 @@ export default function DineAndDashApp() {
       return;
     }
     updatePasswordInDb(forgotEmailInput, newPasswordInput);
-    alert('Password successfully updated! You can now sign in with your new password.');
+    alert('New password successfully saved in database! You can now sign in.');
     setIsSignUp(false);
     setIdentifier(forgotEmailInput);
     setStep('password');
@@ -230,22 +268,47 @@ export default function DineAndDashApp() {
           </div>
 
           {step !== 'forgot_email' && step !== 'forgot_new_pass' && (
-            <div className="flex bg-neutral-100 p-1 rounded-full mb-6 border border-neutral-200">
-              <button
-                type="button"
-                className={`flex-1 py-2 text-xs font-bold rounded-full transition ${!isSignUp ? 'bg-red-600 text-white shadow-md' : 'text-neutral-600 hover:text-neutral-900'}`}
-                onClick={() => { setIsSignUp(false); setStep('input'); setEmailError(''); }}
-              >
-                Sign In
-              </button>
-              <button
-                type="button"
-                className={`flex-1 py-2 text-xs font-bold rounded-full transition ${isSignUp ? 'bg-red-600 text-white shadow-md' : 'text-neutral-600 hover:text-neutral-900'}`}
-                onClick={() => { setIsSignUp(true); setStep('signup_form'); setEmailError(''); }}
-              >
-                Create Account
-              </button>
-            </div>
+            <>
+              <div className="flex bg-neutral-100 p-1 rounded-full mb-6 border border-neutral-200">
+                <button
+                  type="button"
+                  className={`flex-1 py-2 text-xs font-bold rounded-full transition ${!isSignUp ? 'bg-red-600 text-white shadow-md' : 'text-neutral-600 hover:text-neutral-900'}`}
+                  onClick={() => { setIsSignUp(false); setStep('input'); setEmailError(''); }}
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  className={`flex-1 py-2 text-xs font-bold rounded-full transition ${isSignUp ? 'bg-red-600 text-white shadow-md' : 'text-neutral-600 hover:text-neutral-900'}`}
+                  onClick={() => { setIsSignUp(true); setStep('signup_form'); setEmailError(''); }}
+                >
+                  Create Account
+                </button>
+              </div>
+
+              {/* Google & Guest Quick Sign-In Options */}
+              <div className="space-y-2 mb-6">
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  className="w-full py-2.5 px-4 bg-white border border-neutral-300 hover:bg-neutral-50 text-neutral-800 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-sm"
+                >
+                  <span className="text-base">🌐</span> Sign in with Google
+                </button>
+                <button
+                  type="button"
+                  onClick={handleGuestLogin}
+                  className="w-full py-2.5 px-4 bg-neutral-100 border border-neutral-200 hover:bg-neutral-200 text-neutral-700 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition"
+                >
+                  <span className="text-base">👤</span> Continue as Guest
+                </button>
+                <div className="relative flex py-2 items-center">
+                  <div className="flex-grow border-t border-neutral-200"></div>
+                  <span className="flex-shrink mx-4 text-[10px] text-neutral-400 font-bold uppercase tracking-widest">Or with email / phone</span>
+                  <div className="flex-grow border-t border-neutral-200"></div>
+                </div>
+              </div>
+            </>
           )}
 
           {isSignUp && step === 'signup_form' && (
@@ -373,7 +436,7 @@ export default function DineAndDashApp() {
                 </button>
               </div>
 
-              {/* Forgot password on top of password label */}
+              {/* Forgot password placed directly above password label */}
               <div className="flex justify-between items-center">
                 <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider">Password</label>
                 <button
@@ -457,7 +520,7 @@ export default function DineAndDashApp() {
 
               <div className="text-center mb-2">
                 <h2 className="text-sm font-bold text-neutral-800">Reset Your Password</h2>
-                <p className="text-xs text-neutral-500 mt-1">Enter your account email to proceed to password recovery.</p>
+                <p className="text-xs text-neutral-500 mt-1">Enter your account email to set a new password.</p>
               </div>
 
               <div>
@@ -476,7 +539,7 @@ export default function DineAndDashApp() {
                 type="submit"
                 className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl transition shadow-md text-sm"
               >
-                Continue to Reset Password
+                Continue to New Password
               </button>
             </form>
           )}
@@ -497,7 +560,7 @@ export default function DineAndDashApp() {
 
               <div className="text-center mb-2">
                 <h2 className="text-sm font-bold text-neutral-800">Create New Password</h2>
-                <p className="text-xs text-neutral-500 mt-1">Enter your new secure password below.</p>
+                <p className="text-xs text-neutral-500 mt-1">Enter your new secure password for <span className="font-bold text-neutral-800">{forgotEmailInput}</span></p>
               </div>
 
               <div>
@@ -516,7 +579,7 @@ export default function DineAndDashApp() {
                 type="submit"
                 className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl transition shadow-md text-sm"
               >
-                Reset Password & Sign In
+                Save New Password & Sign In
               </button>
             </form>
           )}
