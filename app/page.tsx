@@ -1,4 +1,7 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import LocationPicker from "./components/LocationPicker";
 
 // Mock data for food categories
 const categories = [
@@ -18,7 +21,6 @@ const restaurants = [
     name: "Slice House Pizza",
     image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80",
     rating: 4.8,
-    reviews: "200+",
     deliveryTime: "20-30 min",
     deliveryFee: "$1.99",
     category: "Pizza",
@@ -28,7 +30,6 @@ const restaurants = [
     name: "Burger Craft",
     image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     rating: 4.6,
-    reviews: "150+",
     deliveryTime: "15-25 min",
     deliveryFee: "Free",
     category: "Burgers",
@@ -38,7 +39,6 @@ const restaurants = [
     name: "Sakura Sushi",
     image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=500&q=80",
     rating: 4.9,
-    reviews: "320+",
     deliveryTime: "30-40 min",
     deliveryFee: "$2.99",
     category: "Sushi",
@@ -46,11 +46,35 @@ const restaurants = [
 ];
 
 export default function Home() {
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [savedLocation, setSavedLocation] = useState<{ label: string; address: string }>({
+    label: "Home",
+    address: "Set your delivery location",
+  });
+
   return (
     <main className="min-h-screen bg-gray-50 pb-12">
+      {/* Location Modal */}
+      <LocationPicker
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+        onSelectLocation={(loc) => setSavedLocation({ label: loc.label, address: loc.address })}
+      />
+
       {/* 1. HERO BANNER & SEARCH BAR */}
       <section className="bg-red-600 text-white py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center space-y-6">
+          
+          {/* Deliver To Selector Badge */}
+          <div className="inline-flex items-center gap-2 bg-red-700/80 backdrop-blur-sm px-4 py-2 rounded-full border border-red-500 cursor-pointer hover:bg-red-700 transition"
+               onClick={() => setIsLocationModalOpen(true)}>
+            <span className="text-yellow-300">📍 Deliver to:</span>
+            <span className="font-semibold text-sm">
+              [{savedLocation.label}] {savedLocation.address}
+            </span>
+            <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">Change ✏️</span>
+          </div>
+
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight">
             Hungry? <span className="text-yellow-300">Dash and Dine</span> delivers.
           </h1>
@@ -62,7 +86,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto bg-white p-2 rounded-xl shadow-lg text-gray-800">
             <input
               type="text"
-              placeholder="Enter your street address or cuisine..."
+              placeholder="Search for restaurants or dishes..."
               className="flex-1 px-4 py-3 rounded-lg focus:outline-none w-full"
             />
             <button className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-lg transition">
