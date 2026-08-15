@@ -14,22 +14,21 @@ export default function AuthPage({ onLoggedIn }: { onLoggedIn: (userEmail: strin
   const [step, setStep] = useState<'input' | 'signup_form' | 'password' | 'otp'>('input');
 
   // Form fields
-  const [identifier, setIdentifier] = useState(''); // Used for sign-in or initial email entry
+  const [identifier, setIdentifier] = useState('');
   const [emailError, setEmailError] = useState('');
   
   // Dedicated Create Account Fields
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [countryCode, setCountryCode] = useState('+251');
   const [phone, setPhone] = useState('');
-  const [country, setCountry] = useState('Ethiopia (+251)');
   
   const [signInPassword, setSignInPassword] = useState('');
   const [otpCode, setOtpCode] = useState('');
 
   const isEmail = (val: string) => val.includes('@');
 
-  // Handle email input change on sign up with real-time duplicate database check
   const handleEmailChange = (val: string) => {
     setEmail(val);
     if (mockDatabaseAccounts.includes(val.trim().toLowerCase())) {
@@ -67,9 +66,8 @@ export default function AuthPage({ onLoggedIn }: { onLoggedIn: (userEmail: strin
       return;
     }
 
-    // Add to mock database simulation
     mockDatabaseAccounts.push(email.trim().toLowerCase());
-    alert(`Account successfully created for ${fullName} from ${country}!`);
+    alert(`Account successfully created for ${fullName} with ${countryCode} ${phone}!`);
     onLoggedIn(email);
   };
 
@@ -106,7 +104,7 @@ export default function AuthPage({ onLoggedIn }: { onLoggedIn: (userEmail: strin
           </button>
         </div>
 
-        {/* CREATE ACCOUNT FLOW (Dedicated separated fields + email database check) */}
+        {/* CREATE ACCOUNT FLOW */}
         {isSignUp && (
           <form onSubmit={handleCreateAccountSubmit} className="space-y-3">
             <div>
@@ -163,35 +161,33 @@ export default function AuthPage({ onLoggedIn }: { onLoggedIn: (userEmail: strin
 
             <div>
               <label className="block text-xs font-bold text-neutral-300 mb-1 uppercase tracking-wider">Phone Number</label>
-              <input
-                type="text"
-                required
-                className="w-full px-3.5 py-2.5 bg-black border border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 text-white text-sm"
-                placeholder="911223344"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-neutral-300 mb-1 uppercase tracking-wider">Country Selector</label>
-              <select
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-black border border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 text-white text-sm"
-              >
-                <option value="Ethiopia (+251)">Ethiopia (+251)</option>
-                <option value="United States (+1)">United States (+1)</option>
-                <option value="United Kingdom (+44)">United Kingdom (+44)</option>
-                <option value="Kenya (+254)">Kenya (+254)</option>
-                <option value="UAE (+971)">UAE (+971)</option>
-              </select>
+              <div className="flex gap-2">
+                <select
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                  className="px-3 py-2.5 bg-black border border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 text-white text-sm font-semibold"
+                >
+                  <option value="+251">+251 (ET)</option>
+                  <option value="+1">+1 (US)</option>
+                  <option value="+44">+44 (UK)</option>
+                  <option value="+254">+254 (KE)</option>
+                  <option value="+971">+971 (UAE)</option>
+                </select>
+                <input
+                  type="text"
+                  required
+                  className="flex-1 px-3.5 py-2.5 bg-black border border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 text-white text-sm"
+                  placeholder="982803344"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={Boolean(emailError)}
-              className="w-full py-3 bg-red-600 hover:bg-red-700 disabled:bg-neutral-800 disabled:text-neutral-600 text-white font-extrabold rounded-xl transition shadow-lg text-sm mt-2"
+              className="w-full py-3 bg-red-600 hover:bg-red-700 disabled:bg-neutral-800 disabled:text-neutral-600 text-white font-extrabold rounded-xl transition shadow-lg text-sm mt-3"
             >
               Complete Account Creation
             </button>
