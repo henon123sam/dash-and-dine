@@ -83,7 +83,7 @@ export default function DineAndDashApp() {
 
   // Auth screen states
   const [isSignUp, setIsSignUp] = useState(false);
-  const [step, setStep] = useState<'input' | 'signup_form' | 'password' | 'otp' | 'forgot_email' | 'forgot_code' | 'forgot_new_pass'>('input');
+  const [step, setStep] = useState<'input' | 'signup_form' | 'password' | 'otp' | 'forgot_email' | 'forgot_link_sent' | 'forgot_new_pass'>('input');
   const [identifier, setIdentifier] = useState('');
   const [emailError, setEmailError] = useState('');
 
@@ -100,9 +100,7 @@ export default function DineAndDashApp() {
 
   // Forgot password states
   const [forgotEmailInput, setForgotEmailInput] = useState('');
-  const [resetCodeInput, setResetCodeInput] = useState('');
   const [newPasswordInput, setNewPasswordInput] = useState('');
-  const generatedResetCode = '7777';
 
   const isEmail = (val: string) => val.includes('@');
 
@@ -185,25 +183,16 @@ export default function DineAndDashApp() {
     handleLoginSuccess(identifier);
   };
 
-  const handleSendResetCode = (e: React.FormEvent) => {
+  const handleSendResetLink = (e: React.FormEvent) => {
     e.preventDefault();
     const account = accounts.find(acc => acc.email.toLowerCase() === forgotEmailInput.trim().toLowerCase());
     if (!account) {
       alert('No registered account found with this email address.');
       return;
     }
-    // Simulate real Gmail password reset link / email notification dispatch
-    alert(`[Gmail Simulation]: Password reset link and verification code (7777) successfully sent to ${forgotEmailInput}! Check your inbox.`);
-    setStep('forgot_code');
-  };
-
-  const handleVerifyResetCode = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (resetCodeInput !== generatedResetCode) {
-      alert('Invalid code. Please enter the correct 4-digit code sent to your email.');
-      return;
-    }
-    setStep('forgot_new_pass');
+    // Simulate real Gmail password reset link dispatch
+    alert(`[Gmail Simulation]: Password reset link successfully sent to ${forgotEmailInput}! Please check your Gmail inbox.`);
+    setStep('forgot_link_sent');
   };
 
   const handleSaveNewPassword = (e: React.FormEvent) => {
@@ -218,7 +207,6 @@ export default function DineAndDashApp() {
     setIdentifier(forgotEmailInput);
     setStep('password');
     setForgotEmailInput('');
-    setResetCodeInput('');
     setNewPasswordInput('');
   };
 
@@ -242,7 +230,7 @@ export default function DineAndDashApp() {
             <p className="text-neutral-500 text-xs font-semibold uppercase tracking-widest">Speed & Flavor Delivered</p>
           </div>
 
-          {step !== 'forgot_email' && step !== 'forgot_code' && step !== 'forgot_new_pass' && (
+          {step !== 'forgot_email' && step !== 'forgot_link_sent' && step !== 'forgot_new_pass' && (
             <div className="flex bg-neutral-100 p-1 rounded-full mb-6 border border-neutral-200">
               <button
                 type="button"
@@ -386,7 +374,7 @@ export default function DineAndDashApp() {
                 </button>
               </div>
 
-              {/* Forgot password placed ABOVE password field */}
+              {/* Forgot password on top of the password label */}
               <div className="flex justify-between items-center">
                 <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider">Password</label>
                 <button
@@ -455,7 +443,7 @@ export default function DineAndDashApp() {
           )}
 
           {step === 'forgot_email' && (
-            <form onSubmit={handleSendResetCode} className="space-y-4">
+            <form onSubmit={handleSendResetLink} className="space-y-4">
               {/* Back Icon Header */}
               <div className="flex items-center mb-1">
                 <button
@@ -470,7 +458,7 @@ export default function DineAndDashApp() {
 
               <div className="text-center mb-2">
                 <h2 className="text-sm font-bold text-neutral-800">Reset Your Password</h2>
-                <p className="text-xs text-neutral-500 mt-1">Enter your Gmail address to receive a secure password reset link and code.</p>
+                <p className="text-xs text-neutral-500 mt-1">Enter your Gmail address to receive a secure password reset link.</p>
               </div>
 
               <div>
@@ -494,8 +482,8 @@ export default function DineAndDashApp() {
             </form>
           )}
 
-          {step === 'forgot_code' && (
-            <form onSubmit={handleVerifyResetCode} className="space-y-4">
+          {step === 'forgot_link_sent' && (
+            <div className="space-y-4 text-center">
               {/* Back Icon Header */}
               <div className="flex items-center mb-1">
                 <button
@@ -508,32 +496,26 @@ export default function DineAndDashApp() {
                 </button>
               </div>
 
-              <div className="text-center mb-2">
-                <h2 className="text-sm font-bold text-neutral-800">Enter Verification Code</h2>
-                <p className="text-xs text-neutral-500 mt-1">We sent a password reset link & 4-digit code to your Gmail: <span className="font-semibold text-neutral-800">{forgotEmailInput}</span></p>
+              <div className="py-2">
+                <div className="text-4xl mb-2">✉️</div>
+                <h2 className="text-base font-black text-neutral-900">Reset Link Sent!</h2>
+                <p className="text-xs text-neutral-500 mt-1.5 leading-relaxed">
+                  We sent a password reset link to your Gmail: <br /><span className="font-bold text-neutral-800">{forgotEmailInput}</span>
+                </p>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1 uppercase tracking-wider">4-Digit Code from Gmail</label>
-                <input
-                  type="text"
-                  maxLength={4}
-                  required
-                  className="w-full px-4 py-3 text-center tracking-widest text-xl font-black bg-neutral-50 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 text-neutral-900"
-                  placeholder="7777"
-                  value={resetCodeInput}
-                  onChange={(e) => setResetCodeInput(e.target.value)}
-                />
-                <p className="text-[11px] text-neutral-500 mt-1 text-center">Demo code: 7777</p>
+              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-left">
+                <p className="text-[11px] font-bold text-red-800">Simulated Gmail Inbox Action:</p>
+                <p className="text-[11px] text-neutral-600 mt-0.5">Click the link below to proceed directly to setting your new password:</p>
+                <button
+                  type="button"
+                  onClick={() => setStep('forgot_new_pass')}
+                  className="mt-2 w-full py-2 bg-white border border-red-300 text-red-600 rounded-lg text-xs font-extrabold hover:bg-red-600 hover:text-white transition shadow-sm"
+                >
+                  🔗 Click Reset Link in Gmail
+                </button>
               </div>
-
-              <button
-                type="submit"
-                className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl transition shadow-md text-sm"
-              >
-                Verify Code
-              </button>
-            </form>
+            </div>
           )}
 
           {step === 'forgot_new_pass' && (
@@ -542,7 +524,7 @@ export default function DineAndDashApp() {
               <div className="flex items-center mb-1">
                 <button
                   type="button"
-                  onClick={() => setStep('forgot_code')}
+                  onClick={() => setStep('forgot_link_sent')}
                   className="p-2 -ml-2 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-full transition flex items-center gap-1.5 text-xs font-bold"
                   title="Go back"
                 >
