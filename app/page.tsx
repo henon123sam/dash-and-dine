@@ -19,20 +19,25 @@ interface FoodItem {
   description: string;
 }
 
+interface CartItem extends FoodItem {
+  quantity: number;
+}
+
 const mockFoodMenu: FoodItem[] = [
   { id: 1, name: 'Doro Wat Special', category: 'Traditional', price: 450, image: '🍛', description: 'Traditional spicy chicken stew with hard-boiled egg and injera.' },
   { id: 2, name: 'Kitfo Special', category: 'Traditional', price: 520, image: '🥩', description: 'Minced lean beef seasoned with mitmita and clarified butter.' },
-  { id: 3, name: 'Dash Supreme Burger', category: 'Fast Food', price: 380, image: '🍔', description: 'Double beef patty, melted cheddar, crispy bacon, and signature sauce.' },
+  { id: 3, name: 'Eko Supreme Burger', category: 'Fast Food', price: 380, image: '🍔', description: 'Double beef patty, melted cheddar, crispy bacon, and signature sauce.' },
   { id: 4, name: 'Spicy Pepperoni Pizza', category: 'Fast Food', price: 600, image: '🍕', description: 'Loaded with double pepperoni, mozzarella cheese, and chili flakes.' },
   { id: 5, name: 'Fresh Avocado Juice', category: 'Drinks', price: 150, image: '🥑', description: 'Layered fresh fruit smoothie with mango and strawberry.' },
+  { id: 6, name: 'Tibbs Firfir', category: 'Traditional', price: 410, image: '🍲', description: 'Tender cubed beef sautéed with onions, rosemary, and berbere sauce.' },
 ];
 
-export default function DineAndDashApp() {
+export default function EkoApp() {
   const [accounts, setAccounts] = useState<UserAccount[]>([]);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
 
   useEffect(() => {
-    const savedAccounts = localStorage.getItem('dine_and_dash_accounts');
+    const savedAccounts = localStorage.getItem('eko_app_accounts');
     if (savedAccounts) {
       try {
         setAccounts(JSON.parse(savedAccounts));
@@ -43,11 +48,11 @@ export default function DineAndDashApp() {
       const initialAccounts: UserAccount[] = [
         { email: 'henon123@gmail.com', password: 'password123', fullName: 'Henon Samuel', phone: '982803344', countryCode: '+251' }
       ];
-      localStorage.setItem('dine_and_dash_accounts', JSON.stringify(initialAccounts));
+      localStorage.setItem('eko_app_accounts', JSON.stringify(initialAccounts));
       setAccounts(initialAccounts);
     }
 
-    const active = localStorage.getItem('dine_and_dash_current_user');
+    const active = localStorage.getItem('eko_app_current_user');
     if (active) setCurrentUser(active);
   }, []);
 
@@ -63,7 +68,7 @@ export default function DineAndDashApp() {
   const saveNewAccount = (newAcc: UserAccount) => {
     const updated = [...accounts, newAcc];
     setAccounts(updated);
-    localStorage.setItem('dine_and_dash_accounts', JSON.stringify(updated));
+    localStorage.setItem('eko_app_accounts', JSON.stringify(updated));
   };
 
   const updatePasswordInDb = (email: string, newPass: string) => {
@@ -87,17 +92,17 @@ export default function DineAndDashApp() {
     }
     
     setAccounts(updated);
-    localStorage.setItem('dine_and_dash_accounts', JSON.stringify(updated));
+    localStorage.setItem('eko_app_accounts', JSON.stringify(updated));
   };
 
   const handleLoginSuccess = (email: string) => {
     setCurrentUser(email);
-    localStorage.setItem('dine_and_dash_current_user', email);
+    localStorage.setItem('eko_app_current_user', email);
   };
 
   const handleLogout = () => {
     setCurrentUser(null);
-    localStorage.removeItem('dine_and_dash_current_user');
+    localStorage.removeItem('eko_app_current_user');
   };
 
   const handleGoogleLogin = () => {
@@ -246,29 +251,67 @@ export default function DineAndDashApp() {
     setNewPasswordInput('');
   };
 
-  // Main Menu Dashboard States
-  const [mainTab, setMainTab] = useState<'dine' | 'dash'>('dine');
-  const [cart, setCart] = useState<FoodItem[]>([]);
-  
+  // Main Dashboard States
+  const [mainTab, setMainTab] = useState<'dine' | 'dash' | 'cart'>('dine');
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+
+  // Cart Management Functions
+  const addToCart = (item: FoodItem) => {
+    setCart(prevCart => {
+      const existing = prevCart.find(cartItem => cartItem.id === item.id);
+      if (existing) {
+        return prevCart.map(cartItem =>
+          cartItem.id === item.id ? { ...cartItem, quantity: cartItem.quantity + 1 } : cartItem
+        );
+      }
+      return [...prevCart, { ...item, quantity: 1 }];
+    });
+  };
+
+  const updateQuantity = (id: number, delta: number) => {
+    setCart(prevCart => {
+      return prevCart.map(item => {
+        if (item.id === id) {
+          const newQty = item.quantity + delta;
+          return newQty > 0 ? { ...item, quantity: newQty } : null;
+        }
+        return item;
+      }).filter(Boolean) as CartItem[];
+    });
+  };
+
+  const removeFromCart = (id: number) => {
+    setCart(prevCart => prevCart.filter(item => item.id !== id));
+  };
+
+  const getTotalCartPrice = () => {
+    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+  };
+
   // Dash Trip Map States
   const [pickupLocation, setPickupLocation] = useState('Bole Medhanialem, Addis Ababa');
   const [destinationLocation, setDestinationLocation] = useState('Piazza, Addis Ababa');
   const [tripActive, setTripActive] = useState(false);
 
-  // --- RENDER: AUTH PAGE (Red & White Theme) ---
+  // Filtered menu items
+  const filteredMenu = selectedCategory === 'All' 
+    ? mockFoodMenu 
+    : mockFoodMenu.filter(item => item.category === selectedCategory);
+
+  // --- RENDER: AUTH PAGE ---
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center p-6 text-neutral-900 font-sans">
         <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-neutral-200 shadow-2xl relative">
           
           <div className="text-center mb-6">
-            <h1 className="text-3xl font-black text-red-600 tracking-wider mb-1">DINE & DASH</h1>
+            <h1 className="text-3xl font-black text-red-600 tracking-wider mb-1">EKO</h1>
             <p className="text-neutral-500 text-xs font-semibold uppercase tracking-widest">Speed & Flavor Delivered</p>
           </div>
 
           {step !== 'forgot_email' && step !== 'forgot_new_pass' && (
             <>
-              {/* Top switcher: Sign In vs Create Account */}
               <div className="flex bg-neutral-100 p-1 rounded-full mb-6 border border-neutral-200">
                 <button
                   type="button"
@@ -286,7 +329,6 @@ export default function DineAndDashApp() {
                 </button>
               </div>
 
-              {/* Google & Guest Quick Sign-In Options (Switched places: Google on top, Guest below with Google official multicolor icon) */}
               <div className="space-y-2 mb-6">
                 <button
                   type="button"
@@ -592,43 +634,59 @@ export default function DineAndDashApp() {
     );
   }
 
-  // --- RENDER: MAIN DASHBOARD (DINE & DASH MENU WITH FOOD & LIVE MAP) ---
+  // --- RENDER: MAIN DASHBOARD (EKO MENU, CART, & LIVE MAP) ---
+  const totalCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
   return (
     <div className="min-h-screen bg-neutral-100 text-neutral-900 font-sans flex flex-col">
       
       {/* Top Header Navigation */}
-      <header className="bg-white border-b border-neutral-200 px-6 py-4 flex items-center justify-between shadow-sm">
+      <header className="bg-white border-b border-neutral-200 px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50">
         
-        {/* Prominent Bold Branding */}
         <div className="flex items-center space-x-4">
           <h1 className="text-2xl font-black tracking-widest text-red-600 drop-shadow-sm">
-            DINE <span className="text-neutral-900">&</span> DASH
+            EKO
           </h1>
           <span className="text-xs bg-red-50 text-red-700 font-extrabold px-3 py-1.5 rounded-full border border-red-200">
             Welcome, {getFirstName(currentUser)}!
           </span>
         </div>
 
-        {/* Central Mode Switcher: DINE (Food Icon) vs DASH (Car Icon) with Hover Zoom/Expand */}
-        <div className="flex bg-neutral-100 p-1.5 rounded-full border border-neutral-200 gap-2">
+        {/* Navigation Tabs: Dine, Dash, Cart */}
+        <div className="flex bg-neutral-100 p-1.5 rounded-full border border-neutral-200 gap-1 sm:gap-2">
           <button
             onClick={() => setMainTab('dine')}
-            className={`flex items-center space-x-2 px-6 py-2.5 text-xs font-extrabold rounded-full transition-all duration-300 transform hover:scale-105 ${
+            className={`flex items-center space-x-2 px-4 sm:px-6 py-2.5 text-xs font-extrabold rounded-full transition-all duration-300 transform hover:scale-105 ${
               mainTab === 'dine' ? 'bg-red-600 text-white shadow-md' : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-200'
             }`}
           >
             <span className="text-base">🍕</span>
-            <span>Dine</span>
+            <span>Dine Menu</span>
           </button>
           
           <button
             onClick={() => setMainTab('dash')}
-            className={`flex items-center space-x-2 px-6 py-2.5 text-xs font-extrabold rounded-full transition-all duration-300 transform hover:scale-105 ${
+            className={`flex items-center space-x-2 px-4 sm:px-6 py-2.5 text-xs font-extrabold rounded-full transition-all duration-300 transform hover:scale-105 ${
               mainTab === 'dash' ? 'bg-red-600 text-white shadow-md' : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-200'
             }`}
           >
             <span className="text-base">🚗</span>
-            <span>Dash</span>
+            <span>Dash Ride</span>
+          </button>
+
+          <button
+            onClick={() => setMainTab('cart')}
+            className={`flex items-center space-x-2 px-4 sm:px-6 py-2.5 text-xs font-extrabold rounded-full transition-all duration-300 transform hover:scale-105 relative ${
+              mainTab === 'cart' ? 'bg-red-600 text-white shadow-md' : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-200'
+            }`}
+          >
+            <span className="text-base">🛒</span>
+            <span>Cart</span>
+            {totalCartCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-neutral-900 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow">
+                {totalCartCount}
+              </span>
+            )}
           </button>
         </div>
 
@@ -643,43 +701,173 @@ export default function DineAndDashApp() {
       {/* Main Content Area */}
       <main className="flex-1 p-6 max-w-6xl w-full mx-auto">
         
-        {/* --- DINE SECTION (FOOD ORDERING) --- */}
+        {/* --- DINE SECTION (REFINED FOOD MENU & CART INTEGRATION) --- */}
         {mainTab === 'dine' && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-black text-neutral-900">Explore Delicious Menu</h2>
-                <p className="text-xs text-neutral-500 font-medium">Order food instantly delivered with lightning speed.</p>
+                <h2 className="text-2xl font-black text-neutral-900">Explore Eko Menu</h2>
+                <p className="text-xs text-neutral-500 font-medium">Authentic traditional dishes and fast favorites delivered hot.</p>
               </div>
-              <div className="bg-red-600 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-md">
-                Cart Items: {cart.length}
+
+              {/* Category Filters */}
+              <div className="flex bg-white p-1 rounded-2xl border border-neutral-200 shadow-sm gap-1">
+                {['All', 'Traditional', 'Fast Food', 'Drinks'].map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition ${
+                      selectedCategory === category ? 'bg-red-600 text-white shadow' : 'text-neutral-600 hover:bg-neutral-100'
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
               </div>
             </div>
 
+            {/* Menu Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {mockFoodMenu.map((item) => (
-                <div key={item.id} className="bg-white border border-neutral-200 rounded-3xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between">
-                  <div>
-                    <div className="text-4xl mb-3 text-center bg-neutral-50 py-4 rounded-2xl">{item.image}</div>
-                    <span className="text-[10px] font-extrabold uppercase text-red-600 tracking-wider bg-red-50 px-2.5 py-1 rounded-md">{item.category}</span>
-                    <h3 className="font-bold text-lg text-neutral-900 mt-2">{item.name}</h3>
-                    <p className="text-xs text-neutral-500 mt-1 leading-relaxed">{item.description}</p>
+              {filteredMenu.map((item) => {
+                const inCartItem = cart.find(c => c.id === item.id);
+                return (
+                  <div key={item.id} className="bg-white border border-neutral-200 rounded-3xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between">
+                    <div>
+                      <div className="text-4xl mb-3 text-center bg-neutral-50 py-5 rounded-2xl border border-neutral-100">{item.image}</div>
+                      <span className="text-[10px] font-extrabold uppercase text-red-600 tracking-wider bg-red-50 px-2.5 py-1 rounded-md">{item.category}</span>
+                      <h3 className="font-bold text-lg text-neutral-900 mt-2">{item.name}</h3>
+                      <p className="text-xs text-neutral-500 mt-1 leading-relaxed">{item.description}</p>
+                    </div>
+
+                    <div className="mt-5 flex items-center justify-between pt-3 border-t border-neutral-100">
+                      <span className="font-black text-neutral-900 text-base">{item.price} ETB</span>
+                      
+                      {inCartItem ? (
+                        <div className="flex items-center space-x-2 bg-red-50 border border-red-200 rounded-xl px-2 py-1">
+                          <button 
+                            onClick={() => updateQuantity(item.id, -1)}
+                            className="w-6 h-6 bg-white text-red-600 rounded-lg font-black text-xs shadow-sm flex items-center justify-center hover:bg-red-600 hover:text-white transition"
+                          >
+                            -
+                          </button>
+                          <span className="text-xs font-black text-red-700 px-1">{inCartItem.quantity}</span>
+                          <button 
+                            onClick={() => updateQuantity(item.id, 1)}
+                            className="w-6 h-6 bg-white text-red-600 rounded-lg font-black text-xs shadow-sm flex items-center justify-center hover:bg-red-600 hover:text-white transition"
+                          >
+                            +
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => addToCart(item)}
+                          className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow transition"
+                        >
+                          Add to Cart
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div className="mt-5 flex items-center justify-between pt-3 border-t border-neutral-100">
-                    <span className="font-black text-neutral-900 text-base">{item.price} ETB</span>
-                    <button
-                      onClick={() => {
-                        setCart([...cart, item]);
-                        alert(`Added ${item.name} to your food order!`);
-                      }}
-                      className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow transition"
-                    >
-                      Add to Order
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
+          </div>
+        )}
+
+        {/* --- CART SECTION (FULL REVISED CHECKOUT & QUANTITY MANAGEMENT) --- */}
+        {mainTab === 'cart' && (
+          <div className="space-y-6 max-w-3xl mx-auto">
+            <div>
+              <h2 className="text-2xl font-black text-neutral-900">Your Food Cart</h2>
+              <p className="text-xs text-neutral-500 font-medium">Review your selections and complete your order.</p>
+            </div>
+
+            {cart.length === 0 ? (
+              <div className="bg-white border border-neutral-200 rounded-3xl p-12 text-center shadow-sm space-y-4">
+                <div className="text-5xl">🛒</div>
+                <h3 className="font-bold text-lg text-neutral-800">Your cart is currently empty</h3>
+                <p className="text-xs text-neutral-500">Explore the Dine Menu and add some delicious meals!</p>
+                <button
+                  onClick={() => setMainTab('dine')}
+                  className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold rounded-xl shadow transition"
+                >
+                  Browse Menu
+                </button>
+              </div>
+            ) : (
+              <div className="bg-white border border-neutral-200 rounded-3xl p-6 shadow-sm space-y-6">
+                <div className="divide-y divide-neutral-100">
+                  {cart.map((item) => (
+                    <div key={item.id} className="py-4 flex items-center justify-between gap-4">
+                      <div className="flex items-center space-x-4">
+                        <div className="text-3xl bg-neutral-50 p-3 rounded-2xl border border-neutral-100">{item.image}</div>
+                        <div>
+                          <h4 className="font-bold text-sm text-neutral-900">{item.name}</h4>
+                          <p className="text-xs text-neutral-500">{item.price} ETB each</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-2 bg-neutral-100 border border-neutral-200 rounded-xl px-2 py-1">
+                          <button 
+                            onClick={() => updateQuantity(item.id, -1)}
+                            className="w-6 h-6 bg-white text-neutral-800 rounded-lg font-black text-xs shadow-sm flex items-center justify-center hover:bg-red-600 hover:text-white transition"
+                          >
+                            -
+                          </button>
+                          <span className="text-xs font-black text-neutral-900 px-1">{item.quantity}</span>
+                          <button 
+                            onClick={() => updateQuantity(item.id, 1)}
+                            className="w-6 h-6 bg-white text-neutral-800 rounded-lg font-black text-xs shadow-sm flex items-center justify-center hover:bg-red-600 hover:text-white transition"
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        <span className="font-black text-neutral-900 text-sm w-20 text-right">
+                          {item.price * item.quantity} ETB
+                        </span>
+
+                        <button
+                          onClick={() => removeFromCart(item.id)}
+                          className="text-neutral-400 hover:text-red-600 text-xs font-bold p-2 transition"
+                          title="Remove item"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Cart Summary & Checkout */}
+                <div className="pt-4 border-t border-neutral-200 space-y-3">
+                  <div className="flex justify-between text-xs text-neutral-600 font-medium">
+                    <span>Subtotal</span>
+                    <span>{getTotalCartPrice()} ETB</span>
+                  </div>
+                  <div className="flex justify-between text-xs text-neutral-600 font-medium">
+                    <span>Delivery Fee</span>
+                    <span>50 ETB</span>
+                  </div>
+                  <div className="flex justify-between text-base font-black text-neutral-900 pt-2 border-t border-neutral-100">
+                    <span>Total Amount</span>
+                    <span className="text-red-600">{getTotalCartPrice() + 50} ETB</span>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      alert(`Order successfully placed! Total: ${getTotalCartPrice() + 50} ETB. Your food is on the way.`);
+                      setCart([]);
+                      setMainTab('dine');
+                    }}
+                    className="w-full py-3.5 bg-red-600 hover:bg-red-700 text-white font-black rounded-xl shadow-md transition text-sm mt-4"
+                  >
+                    Proceed to Checkout ({getTotalCartPrice() + 50} ETB)
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -693,7 +881,6 @@ export default function DineAndDashApp() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
-              {/* Trip Controls Panel */}
               <div className="bg-white border border-neutral-200 rounded-3xl p-6 shadow-sm space-y-4">
                 <h3 className="font-extrabold text-neutral-900 text-sm uppercase tracking-wider">Plan Your Dash Trip</h3>
                 
@@ -737,14 +924,10 @@ export default function DineAndDashApp() {
                 )}
               </div>
 
-              {/* Big Live Map Simulation View */}
               <div className="lg:col-span-2 bg-neutral-900 rounded-3xl p-6 shadow-lg relative overflow-hidden flex flex-col justify-between min-h-[420px] border border-neutral-800">
-                
-                {/* Map Grid Background Effect */}
                 <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#ff0000_1px,transparent_1px)] [background-size:24px_24px]"></div>
 
-                {/* Map Header Overlay */}
-                <div className="relative z-10 flex items-center justify-between bg-neutral-950/80 backdrop-blur border border-neutral-800 p-3.5 rounded-2xl">
+                <div className="relative z-10 flex items-center justify-between bg-neutral-950/85 backdrop-blur border border-neutral-800 p-3.5 rounded-2xl">
                   <div className="flex items-center space-x-2">
                     <span className="w-3 h-3 bg-red-600 rounded-full animate-ping"></span>
                     <span className="text-xs font-bold text-white uppercase tracking-wider">Live GPS Radar Active</span>
@@ -752,7 +935,6 @@ export default function DineAndDashApp() {
                   <span className="text-xs text-neutral-400 font-medium">Addis Ababa Metro Area</span>
                 </div>
 
-                {/* Visual Map Pin Simulation */}
                 <div className="relative z-10 my-auto text-center py-12 space-y-4">
                   <div className="inline-block p-4 bg-red-600 text-white rounded-3xl shadow-2xl text-2xl font-black animate-bounce">
                     🚗
@@ -764,12 +946,10 @@ export default function DineAndDashApp() {
                   </div>
                 </div>
 
-                {/* Map Footer Controls Overlay */}
-                <div className="relative z-10 flex justify-between items-center bg-neutral-950/80 backdrop-blur border border-neutral-800 px-4 py-2.5 rounded-2xl text-xs text-neutral-300 font-semibold">
+                <div className="relative z-10 flex justify-between items-center bg-neutral-950/85 backdrop-blur border border-neutral-800 px-4 py-2.5 rounded-2xl text-xs text-neutral-300 font-semibold">
                   <span>Zoom: 100%</span>
-                  <span className="text-red-500 font-bold">Dine & Dash Live Navigation</span>
+                  <span className="text-red-500 font-bold">Eko Live Navigation</span>
                 </div>
-
               </div>
 
             </div>
