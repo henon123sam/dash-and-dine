@@ -2,305 +2,792 @@
 
 import React, { useState, useEffect } from 'react';
 
-export default function App() {
-  const [mainTab, setMainTab] = useState('dine');
-  const [dineCategory, setDineCategory] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [cart, setCart] = useState([]);
-  const [notifications, setNotifications] = useState([]);
+interface UserAccount {
+  email: string;
+  password: string;
+  fullName: string;
+  phone: string;
+  countryCode: string;
+}
 
-  // Dash tab extended states
-  const [pickupLocation, setPickupLocation] = useState('Bole Medhanialem, Addis Ababa');
-  const [destinationLocation, setDestinationLocation] = useState('Piazza, Addis Ababa');
-  const [tripActive, setTripActive] = useState(false);
-  const [rideType, setRideType] = useState('standard');
-  const [driverAssigned, setDriverAssigned] = useState(null);
-  const [rideHistory, setRideHistory] = useState([]);
+interface FoodItem {
+  id: number;
+  name: string;
+  category: string;
+  price: number;
+  image: string;
+  description: string;
+}
 
-  // User profile / wallet state
-  const [userBalance, setUserBalance] = useState(1250);
-  const [activePromo, setActivePromo] = useState('DINE50');
-  const [promoApplied, setPromoApplied] = useState(true);
+interface CartItem extends FoodItem {
+  quantity: number;
+}
 
-  // Extended Menu Dataset to ensure full depth
-  const menuItems = [
-    { id: 1, name: 'Doro Wat Classic', category: 'Traditional', price: 450, prepTime: '25 mins', rating: 4.9, reviewsCount: 312, description: 'Slow-cooked chicken stew with berbere, hard-boiled egg, and clarified butter served on fresh injera.', image: '🍲', available: true },
-    { id: 2, name: 'Kitfo Special', category: 'Traditional', price: 500, prepTime: '20 mins', rating: 4.8, reviewsCount: 245, description: 'Minced lean beef warmed in mitmita and niter kibbeh, served raw, medium, or well-done with kocho.', image: '🥩', available: true },
-    { id: 3, name: 'Tibs Firfir', category: 'Traditional', price: 380, prepTime: '15 mins', rating: 4.7, reviewsCount: 198, description: 'Tender cubed beef sautéed with onions, garlic, rosemary, and jalapeños, mixed with injera pieces.', image: '🥘', available: true },
-    { id: 4, name: 'Shiro Beyaynetu', category: 'Vegetarian', price: 280, prepTime: '15 mins', rating: 4.9, reviewsCount: 410, description: 'Smooth spiced chickpea puree accompanied by a variety of fasting vegetable side dishes.', image: '🍛', available: true },
-    { id: 5, name: 'Beyaynetu Deluxe', category: 'Vegetarian', price: 350, prepTime: '15 mins', rating: 4.9, reviewsCount: 520, description: 'Comprehensive platter of assorted vegetarian wats, lentils, shiro, and greens over multiple injera layers.', image: '🥗', available: true },
-    { id: 6, name: 'Mega Smash Burger', category: 'Fast Food', price: 420, prepTime: '20 mins', rating: 4.8, reviewsCount: 380, description: 'Double beef patties with melted cheddar, crispy bacon, caramelized onions, and signature house sauce.', image: '🍔', available: true },
-    { id: 7, name: 'Crispy Chicken Burger', category: 'Fast Food', price: 390, prepTime: '18 mins', rating: '4.6', reviewsCount: 215, description: 'Crunchy fried chicken breast coated in spicy glaze, topped with coleslaw and pickles.', image: '🍗', available: true },
-    { id: 8, name: 'Pepperoni Inferno Pizza', category: 'Fast Food', price: 650, prepTime: '30 mins', rating: 4.9, reviewsCount: 430, description: 'Generous layers of spicy pepperoni, mozzarella cheese, hot honey drizzle, and fresh basil.', image: '🍕', available: true },
-    { id: 9, name: 'Margherita Fresca', category: 'Fast Food', price: 520, prepTime: '25 mins', rating: 4.5, reviewsCount: 160, description: 'Classic Italian pizza with San Marzano tomato sauce, fresh mozzarella, and basil leaves.', image: '🧀', available: true },
-    { id: 10, name: 'Iced Caramel Macchiato', category: 'Drinks', price: 180, prepTime: '10 mins', rating: 4.9, reviewsCount: 610, description: 'Espresso poured over iced milk with a sweet caramel drizzle and silky foam layer.', image: '🧋', available: true },
-    { id: 11, name: 'Fresh Mango Juice', category: 'Drinks', price: 150, prepTime: '10 mins', rating: 4.8, reviewsCount: 450, description: '100% pure, thick, and refreshing tropical mango fruit juice blended with ice.', image: '🥭', available: true },
-    { id: 12, name: 'Classic Mojito (Mocktail)', category: 'Drinks', price: 200, prepTime: '12 mins', rating: 4.7, reviewsCount: 230, description: 'Muddled fresh mint leaves, lime juice, cane sugar, and sparkling soda over crushed ice.', image: '🍹', available: true },
-    { id: 13, name: 'Chocolate Lava Cake', category: 'Desserts', price: 250, prepTime: '15 mins', rating: 4.9, reviewsCount: 340, description: 'Warm chocolate cake with a molten gooey center, served alongside vanilla bean ice cream.', image: '🍰', available: true },
-    { id: 14, name: 'Tiramisu Italiano', category: 'Desserts', price: 300, prepTime: '10 mins', rating: 4.8, reviewsCount: 180, description: 'Layers of espresso-soaked ladyfingers and rich mascarpone cream dusted with dark cocoa powder.', image: '🍮', available: true }
-  ];
+const mockFoodMenu: FoodItem[] = [
+  { id: 1, name: 'Doro Wat Special', category: 'Traditional', price: 450, image: '🍛', description: 'Traditional spicy chicken stew with hard-boiled egg and injera.' },
+  { id: 2, name: 'Kitfo Special', category: 'Traditional', price: 520, image: '🥩', description: 'Minced lean beef seasoned with mitmita and clarified butter.' },
+  { id: 3, name: 'Dash Supreme Burger', category: 'Fast Food', price: 380, image: '🍔', description: 'Double beef patty, melted cheddar, crispy bacon, and signature sauce.' },
+  { id: 4, name: 'Spicy Pepperoni Pizza', category: 'Fast Food', price: 600, image: '🍕', description: 'Loaded with double pepperoni, mozzarella cheese, and chili flakes.' },
+  { id: 5, name: 'Fresh Avocado Juice', category: 'Drinks', price: 150, image: '🥑', description: 'Layered fresh fruit smoothie with mango and strawberry.' },
+  { id: 6, name: 'Tibbs Firfir', category: 'Traditional', price: 410, image: '🍲', description: 'Tender cubed beef sautéed with onions, rosemary, and berbere sauce.' },
+];
 
-  const categories = ['All', 'Traditional', 'Vegetarian', 'Fast Food', 'Drinks', 'Desserts'];
+export default function DashApp() {
+  const [accounts, setAccounts] = useState<UserAccount[]>([]);
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
 
-  const driversList = [
-    { name: 'Samuel K.', car: 'Toyota Vitz (White)', plate: 'A-42911', rating: 4.9, trips: 1420, phone: '+251 91 234 5678' },
-    { name: 'Dawit M.', car: 'Hyundai Atos (Silver)', plate: 'B-88320', rating: 4.8, trips: 980, phone: '+251 92 345 6789' },
-    { name: 'Edom T.', car: 'Toyota Corolla (Black)', plate: 'C-11045', rating: 4.95, trips: 2150, phone: '+251 93 456 7890' }
-  ];
-
-  const addNotification = (msg) => {
-    const id = Date.now();
-    setNotifications(prev => [...prev, { id, msg }]);
-    setTimeout(() => {
-      setNotifications(prev => prev.filter(n => n.id !== id));
-    }, 4000);
-  };
-
-  const filteredMenu = menuItems.filter(item => {
-    const matchesCategory = dineCategory === 'All' || item.category === dineCategory;
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          item.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-
-  const addToCart = (item) => {
-    setCart(prevCart => {
-      const existing = prevCart.find(c => c.id === item.id);
-      if (existing) {
-        return prevCart.map(c => c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c);
+  useEffect(() => {
+    const savedAccounts = localStorage.getItem('dash_app_accounts');
+    if (savedAccounts) {
+      try {
+        setAccounts(JSON.parse(savedAccounts));
+      } catch (e) {
+        setAccounts([]);
       }
-      return [...prevCart, { ...item, quantity: 1 }];
-    });
-    addNotification(`Added ${item.name} to cart!`);
-  };
-
-  const updateQuantity = (id, delta) => {
-    setCart(prevCart => {
-      return prevCart.map(c => {
-        if (c.id === id) {
-          const newQty = c.quantity + delta;
-          return newQty > 0 ? { ...c, quantity: newQty } : null;
-        }
-        return c;
-      }).filter(Boolean);
-    });
-  };
-
-  const removeFromCart = (id) => {
-    setCart(prevCart => prevCart.filter(c => c.id !== id));
-    addNotification('Item removed from cart.');
-  };
-
-  const getTotalCartItems = () => cart.reduce((sum, item) => sum + item.quantity, 0);
-  const getSubtotal = () => cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const getDiscount = () => promoApplied && getSubtotal() > 0 ? 50 : 0;
-  const getDeliveryFee = () => getSubtotal() > 0 ? 60 : 0;
-  const getTotalCartPrice = () => {
-    const sub = getSubtotal();
-    if (sub === 0) return 0;
-    return Math.max(0, sub - getDiscount() + getDeliveryFee());
-  };
-
-  const handleRequestRide = () => {
-    if (!tripActive) {
-      const randomDriver = driversList[Math.floor(Math.random() * driversList.length)];
-      setDriverAssigned(randomDriver);
-      setTripActive(true);
-      addNotification(`Dash ride requested! Driver ${randomDriver.name} is on the way.`);
     } else {
-      setTripActive(false);
-      setDriverAssigned(null);
-      addNotification('Ride cancelled successfully.');
+      const initialAccounts: UserAccount[] = [
+        { email: 'henon123@gmail.com', password: 'password123', fullName: 'Henon Samuel', phone: '982803344', countryCode: '+251' }
+      ];
+      localStorage.setItem('dash_app_accounts', JSON.stringify(initialAccounts));
+      setAccounts(initialAccounts);
+    }
+
+    const active = localStorage.getItem('dash_app_current_user');
+    if (active) setCurrentUser(active);
+  }, []);
+
+  const getFirstName = (emailOrPhone: string) => {
+    if (emailOrPhone === 'guest_user') return 'Guest';
+    const account = accounts.find(acc => acc.email.toLowerCase() === emailOrPhone.toLowerCase());
+    if (account && account.fullName) {
+      return account.fullName.split(' ')[0];
+    }
+    return emailOrPhone.split('@')[0];
+  };
+
+  const saveNewAccount = (newAcc: UserAccount) => {
+    const updated = [...accounts, newAcc];
+    setAccounts(updated);
+    localStorage.setItem('dash_app_accounts', JSON.stringify(updated));
+  };
+
+  const updatePasswordInDb = (email: string, newPass: string) => {
+    const targetEmail = email.trim().toLowerCase();
+    const existingIndex = accounts.findIndex(acc => acc.email.toLowerCase() === targetEmail);
+    
+    let updated: UserAccount[];
+    if (existingIndex !== -1) {
+      updated = accounts.map(acc => 
+        acc.email.toLowerCase() === targetEmail ? { ...acc, password: newPass } : acc
+      );
+    } else {
+      const newAcc: UserAccount = {
+        email: targetEmail,
+        password: newPass,
+        fullName: targetEmail.split('@')[0],
+        phone: '000000000',
+        countryCode: '+251'
+      };
+      updated = [...accounts, newAcc];
+    }
+    
+    setAccounts(updated);
+    localStorage.setItem('dash_app_accounts', JSON.stringify(updated));
+  };
+
+  const handleLoginSuccess = (email: string) => {
+    setCurrentUser(email);
+    localStorage.setItem('dash_app_current_user', email);
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('dash_app_current_user');
+  };
+
+  const handleGoogleLogin = () => {
+    const googleEmail = 'google_user@gmail.com';
+    const existing = accounts.find(acc => acc.email.toLowerCase() === googleEmail);
+    if (!existing) {
+      const googleAccount: UserAccount = {
+        email: googleEmail,
+        password: 'google_oauth_secure',
+        fullName: 'Google User',
+        phone: '911000000',
+        countryCode: '+251'
+      };
+      saveNewAccount(googleAccount);
+    }
+    handleLoginSuccess(googleEmail);
+  };
+
+  const handleGuestLogin = () => {
+    handleLoginSuccess('guest_user');
+  };
+
+  // Auth screen states
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [step, setStep] = useState<'input' | 'signup_form' | 'password' | 'otp' | 'forgot_email' | 'forgot_new_pass'>('input');
+  const [identifier, setIdentifier] = useState('');
+  const [emailError, setEmailError] = useState('');
+
+  // Create account inputs
+  const [fullName, setFullName] = useState('');
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
+  const [countryCode, setCountryCode] = useState('+251');
+  const [phone, setPhone] = useState('');
+
+  // Sign in states
+  const [signInPassword, setSignInPassword] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+
+  // Forgot password states
+  const [forgotEmailInput, setForgotEmailInput] = useState('');
+  const [newPasswordInput, setNewPasswordInput] = useState('');
+
+  const isEmail = (val: string) => val.includes('@');
+
+  const handleSignupEmailChange = (val: string) => {
+    setSignupEmail(val);
+    const found = accounts.find(acc => acc.email.toLowerCase() === val.trim().toLowerCase());
+    if (found) {
+      setEmailError('Email already has an account. Would you like to sign in instead?');
+    } else {
+      setEmailError('');
     }
   };
 
-  return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900 font-sans selection:bg-red-600 selection:text-white pb-24 relative">
-      
-      {/* Toast Notification Container */}
-      <div className="fixed bottom-6 right-6 z-50 space-y-2 pointer-events-none">
-        {notifications.map(n => (
-          <div key={n.id} className="bg-neutral-900 text-white px-4 py-3 rounded-2xl shadow-2xl text-xs font-black tracking-wide border border-neutral-800 animate-bounce pointer-events-auto flex items-center space-x-2">
-            <span>✨</span>
-            <span>{n.msg}</span>
+  const handleInitialSignInSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!identifier.trim()) {
+      alert('Please enter your email or phone number.');
+      return;
+    }
+
+    if (isEmail(identifier)) {
+      const exists = accounts.find(acc => acc.email.toLowerCase() === identifier.trim().toLowerCase());
+      if (!exists) {
+        alert('No account found with this email. Please create an account first.');
+        setIsSignUp(true);
+        setSignupEmail(identifier);
+        setStep('signup_form');
+        return;
+      }
+      setStep('password');
+    } else {
+      alert(`SMS verification code (Mock: 1234) sent to phone: ${identifier}`);
+      setStep('otp');
+    }
+  };
+
+  const handleCreateAccountSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (emailError) return;
+    if (!fullName || !signupEmail || !signupPassword || !phone) {
+      alert('Please fill out all fields completely.');
+      return;
+    }
+
+    const newAccount: UserAccount = {
+      email: signupEmail.trim().toLowerCase(),
+      password: signupPassword,
+      fullName,
+      phone,
+      countryCode,
+    };
+
+    saveNewAccount(newAccount);
+    alert(`Account successfully created for ${fullName}! Please sign in now.`);
+    setIsSignUp(false);
+    setIdentifier(signupEmail);
+    setStep('password');
+    setFullName('');
+    setSignupEmail('');
+    setSignupPassword('');
+    setPhone('');
+  };
+
+  const handlePasswordSignIn = (e: React.FormEvent) => {
+    e.preventDefault();
+    const account = accounts.find(acc => acc.email.toLowerCase() === identifier.trim().toLowerCase());
+    if (account && account.password !== signInPassword) {
+      alert('Incorrect password. Please try again or use Forgot Password.');
+      return;
+    }
+    handleLoginSuccess(identifier);
+  };
+
+  const handleOtpSignIn = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otpCode !== '1234' && otpCode.length !== 4) {
+      alert('Please enter a valid 4-digit verification code (e.g., 1234).');
+      return;
+    }
+    handleLoginSuccess(identifier);
+  };
+
+  const handleProceedToNewPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmailInput.trim()) {
+      alert('Please enter your email address.');
+      return;
+    }
+    setStep('forgot_new_pass');
+  };
+
+  const handleSaveNewPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPasswordInput || newPasswordInput.length < 6) {
+      alert('Password must be at least 6 characters long.');
+      return;
+    }
+    updatePasswordInDb(forgotEmailInput, newPasswordInput);
+    alert('New password successfully saved in database! You can now sign in.');
+    setIsSignUp(false);
+    setIdentifier(forgotEmailInput);
+    setStep('password');
+    setForgotEmailInput('');
+    setNewPasswordInput('');
+  };
+
+  // Main Dashboard States
+  const [mainTab, setMainTab] = useState<'dine' | 'dash' | 'cart'>('dine');
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+
+  // Cart Management Functions
+  const addToCart = (item: FoodItem) => {
+    setCart(prevCart => {
+      const existing = prevCart.find(cartItem => cartItem.id === item.id);
+      if (existing) {
+        return prevCart.map(cartItem =>
+          cartItem.id === item.id ? { ...cartItem, quantity: cartItem.quantity + 1 } : cartItem
+        );
+      }
+      return [...prevCart, { ...item, quantity: 1 }];
+    });
+  };
+
+  const updateQuantity = (id: number, delta: number) => {
+    setCart(prevCart => {
+      return prevCart.map(item => {
+        if (item.id === id) {
+          const newQty = item.quantity + delta;
+          return newQty > 0 ? { ...item, quantity: newQty } : null;
+        }
+        return item;
+      }).filter(Boolean) as CartItem[];
+    });
+  };
+
+  const removeFromCart = (id: number) => {
+    setCart(prevCart => prevCart.filter(item => item.id !== id));
+  };
+
+  const getTotalCartPrice = () => {
+    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+  };
+
+  // Dash Trip Map States
+  const [pickupLocation, setPickupLocation] = useState('Bole Medhanialem, Addis Ababa');
+  const [destinationLocation, setDestinationLocation] = useState('Piazza, Addis Ababa');
+  const [tripActive, setTripActive] = useState(false);
+
+  // Filtered menu items
+  const filteredMenu = selectedCategory === 'All' 
+    ? mockFoodMenu 
+    : mockFoodMenu.filter(item => item.category === selectedCategory);
+
+  // --- RENDER: AUTH PAGE ---
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center p-6 text-neutral-900 font-sans">
+        <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-neutral-200 shadow-2xl relative">
+          
+          <div className="text-center mb-6">
+            <h1 className="text-3xl font-black text-red-600 tracking-wider mb-1">DINE & DASH</h1>
+            <p className="text-neutral-500 text-xs font-semibold uppercase tracking-widest">Speed & Flavor Delivered</p>
           </div>
-        ))}
-      </div>
 
-      {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-neutral-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setMainTab('dine')}>
-            <div className="w-10 h-10 bg-red-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-red-600/30">
-              D
-            </div>
-            <div>
-              <span className="text-lg font-black tracking-tight text-neutral-900 block leading-tight">Dine & Dash</span>
-              <span className="text-[10px] font-bold text-neutral-400 tracking-wider uppercase block">Addis Ababa Hub</span>
-            </div>
-          </div>
-
-          <nav className="flex items-center space-x-1 sm:space-x-2 bg-neutral-100 p-1.5 rounded-2xl border border-neutral-200/60">
-            <button
-              onClick={() => setMainTab('dine')}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${
-                mainTab === 'dine' ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-900'
-              }`}
-            >
-              🍽️ Dine Menu
-            </button>
-            <button
-              onClick={() => setMainTab('dash')}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${
-                mainTab === 'dash' ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-900'
-              }`}
-            >
-              🚗 Dash Ride
-            </button>
-            <button
-              onClick={() => setMainTab('cart')}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition-all relative ${
-                mainTab === 'cart' ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-900'
-              }`}
-            >
-              🛒 Cart
-              {getTotalCartItems() > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 text-white rounded-full text-[10px] font-black flex items-center justify-center shadow-md shadow-red-600/40 animate-pulse">
-                  {getTotalCartItems()}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setMainTab('profile')}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${
-                mainTab === 'profile' ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-900'
-              }`}
-            >
-              👤 Profile
-            </button>
-          </nav>
-        </div>
-      </header>
-
-      {/* Main Container Section */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        
-        {/* --- DINE SECTION --- */}
-        {mainTab === 'dine' && (
-          <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-neutral-900 to-neutral-800 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
-              <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
-              <div className="space-y-2 z-10">
-                <span className="text-xs font-extrabold px-3 py-1 bg-red-600/30 border border-red-500/30 text-red-400 rounded-full uppercase tracking-wider">Fast Delivery & Dine</span>
-                <h1 className="text-3xl sm:text-4xl font-black tracking-tight">Delicious food, delivered fast.</h1>
-                <p className="text-xs sm:text-sm text-neutral-300 font-medium max-w-lg">Explore authentic local dishes, gourmet burgers, fresh pizzas, and refreshing drinks across Addis Ababa.</p>
+          {step !== 'forgot_email' && step !== 'forgot_new_pass' && (
+            <>
+              <div className="flex bg-neutral-100 p-1 rounded-full mb-6 border border-neutral-200">
+                <button
+                  type="button"
+                  className={`flex-1 py-2 text-xs font-bold rounded-full transition ${!isSignUp ? 'bg-red-600 text-white shadow-md' : 'text-neutral-600 hover:text-neutral-900'}`}
+                  onClick={() => { setIsSignUp(false); setStep('input'); setEmailError(''); }}
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  className={`flex-1 py-2 text-xs font-bold rounded-full transition ${isSignUp ? 'bg-red-600 text-white shadow-md' : 'text-neutral-600 hover:text-neutral-900'}`}
+                  onClick={() => { setIsSignUp(true); setStep('signup_form'); setEmailError(''); }}
+                >
+                  Create Account
+                </button>
               </div>
-              <div className="z-10 w-full md:w-80">
+
+              <div className="space-y-2 mb-6">
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  className="w-full py-2.5 px-4 bg-white border border-neutral-300 hover:bg-neutral-50 text-neutral-800 font-bold rounded-xl text-xs flex items-center justify-center gap-2.5 transition shadow-sm"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.18v3.15C3.17 21.36 7.23 24 12 24z"/>
+                    <path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.5-.38-2.24s.13-1.52.38-2.24V6.61H1.18C.43 8.12 0 9.82 0 12s.43 3.88 1.18 5.39l4.09-3.15z"/>
+                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.23 0 3.17 2.64 1.18 6.61l4.09 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/>
+                  </svg>
+                  Sign in with Google
+                </button>
+                <button
+                  type="button"
+                  onClick={handleGuestLogin}
+                  className="w-full py-2.5 px-4 bg-neutral-100 border border-neutral-200 hover:bg-neutral-200 text-neutral-700 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition"
+                >
+                  <span className="text-base">👤</span> Continue as Guest
+                </button>
+                <div className="relative flex py-2 items-center">
+                  <div className="flex-grow border-t border-neutral-200"></div>
+                  <span className="flex-shrink mx-4 text-[10px] text-neutral-400 font-bold uppercase tracking-widest">Or with email / phone</span>
+                  <div className="flex-grow border-t border-neutral-200"></div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {isSignUp && step === 'signup_form' && (
+            <form onSubmit={handleCreateAccountSubmit} className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 mb-1 uppercase tracking-wider">Full Name</label>
                 <input
                   type="text"
-                  placeholder="Search dishes, drinks..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-xs font-semibold text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  required
+                  className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 text-neutral-900 text-sm"
+                  placeholder="Abebe Kebede"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 mb-1 uppercase tracking-wider">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  className={`w-full px-3.5 py-2.5 bg-neutral-50 border rounded-xl focus:outline-none focus:ring-2 text-neutral-900 text-sm ${
+                    emailError ? 'border-red-600 ring-2 ring-red-600/30' : 'border-neutral-300 focus:ring-red-600'
+                  }`}
+                  placeholder="name@example.com"
+                  value={signupEmail}
+                  onChange={(e) => handleSignupEmailChange(e.target.value)}
+                />
+                {emailError && (
+                  <div className="mt-1.5 p-2.5 bg-red-50 border border-red-200 rounded-xl flex items-center justify-between">
+                    <span className="text-[11px] text-red-700 font-medium leading-tight">{emailError}</span>
+                    <button
+                      type="button"
+                      onClick={() => { setIsSignUp(false); setStep('password'); setIdentifier(signupEmail); }}
+                      className="text-[11px] font-extrabold text-red-600 hover:underline ml-2 whitespace-nowrap"
+                    >
+                      Sign In
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 mb-1 uppercase tracking-wider">Password</label>
+                <input
+                  type="password"
+                  required
+                  className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 text-neutral-900 text-sm"
+                  placeholder="••••••••"
+                  value={signupPassword}
+                  onChange={(e) => setSignupPassword(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 mb-1 uppercase tracking-wider">Phone Number</label>
+                <div className="flex gap-2">
+                  <select
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value)}
+                    className="px-3 py-2.5 bg-neutral-50 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 text-neutral-900 text-sm font-semibold"
+                  >
+                    <option value="+251">+251 (ET)</option>
+                    <option value="+1">+1 (US)</option>
+                    <option value="+44">+44 (UK)</option>
+                    <option value="+254">+254 (KE)</option>
+                    <option value="+971">+971 (UAE)</option>
+                  </select>
+                  <input
+                    type="text"
+                    required
+                    className="flex-1 px-3.5 py-2.5 bg-neutral-50 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 text-neutral-900 text-sm"
+                    placeholder="982803344"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={Boolean(emailError)}
+                className="w-full py-3 bg-red-600 hover:bg-red-700 disabled:bg-neutral-200 disabled:text-neutral-400 text-white font-extrabold rounded-xl transition shadow-md text-sm mt-3"
+              >
+                Complete Account Creation
+              </button>
+            </form>
+          )}
+
+          {!isSignUp && step === 'input' && (
+            <form onSubmit={handleInitialSignInSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 mb-1 uppercase tracking-wider">
+                  Email or Phone Number
+                </label>
+                <input
+                  type="text"
+                  required
+                  className="w-full px-4 py-3 bg-neutral-50 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 text-neutral-900 text-sm"
+                  placeholder="name@example.com or phone"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl transition shadow-md text-sm"
+              >
+                Continue
+              </button>
+            </form>
+          )}
+
+          {!isSignUp && step === 'password' && (
+            <form onSubmit={handlePasswordSignIn} className="space-y-4">
+              <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-200 flex items-center justify-between mb-2">
+                <span className="text-xs text-neutral-700 font-semibold truncate max-w-[220px]">{identifier}</span>
+                <button 
+                  type="button" 
+                  onClick={() => setStep('input')} 
+                  className="text-xs text-red-600 font-bold hover:underline"
+                >
+                  Switch
+                </button>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider">Password</label>
+                <button
+                  type="button"
+                  onClick={() => { setStep('forgot_email'); setForgotEmailInput(isEmail(identifier) ? identifier : ''); }}
+                  className="text-xs text-red-600 font-bold hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
+
+              <div>
+                <input
+                  type="password"
+                  required
+                  className="w-full px-4 py-3 bg-neutral-50 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 text-neutral-900 text-sm"
+                  placeholder="••••••••"
+                  value={signInPassword}
+                  onChange={(e) => setSignInPassword(e.target.value)}
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl transition shadow-md text-sm"
+              >
+                Sign In
+              </button>
+            </form>
+          )}
+
+          {!isSignUp && step === 'otp' && (
+            <form onSubmit={handleOtpSignIn} className="space-y-4">
+              <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-200 flex items-center justify-between mb-2">
+                <span className="text-xs text-neutral-700 font-semibold">SMS code sent to {identifier}</span>
+                <button 
+                  type="button" 
+                  onClick={() => setStep('input')} 
+                  className="text-xs text-red-600 font-bold hover:underline"
+                >
+                  Edit
+                </button>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 mb-1 uppercase tracking-wider">Enter 4-Digit Code</label>
+                <input
+                  type="text"
+                  maxLength={4}
+                  required
+                  className="w-full px-4 py-3 text-center tracking-widest text-xl font-black bg-neutral-50 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 text-neutral-900"
+                  placeholder="1234"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value)}
+                />
+                <p className="text-[11px] text-neutral-500 mt-1 text-center">Demo code: 1234</p>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl transition shadow-md text-sm"
+              >
+                Verify & Sign In
+              </button>
+            </form>
+          )}
+
+          {step === 'forgot_email' && (
+            <form onSubmit={handleProceedToNewPassword} className="space-y-4">
+              <div className="flex items-center mb-1">
+                <button
+                  type="button"
+                  onClick={() => setStep('password')}
+                  className="p-2 -ml-2 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-full transition flex items-center gap-1.5 text-xs font-bold"
+                  title="Go back"
+                >
+                  <span>←</span> Back
+                </button>
+              </div>
+
+              <div className="text-center mb-2">
+                <h2 className="text-sm font-bold text-neutral-800">Reset Your Password</h2>
+                <p className="text-xs text-neutral-500 mt-1">Enter your account email to set a new password.</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 mb-1 uppercase tracking-wider">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  className="w-full px-4 py-3 bg-neutral-50 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 text-neutral-900 text-sm"
+                  placeholder="name@example.com"
+                  value={forgotEmailInput}
+                  onChange={(e) => setForgotEmailInput(e.target.value)}
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl transition shadow-md text-sm"
+              >
+                Continue to New Password
+              </button>
+            </form>
+          )}
+
+          {step === 'forgot_new_pass' && (
+            <form onSubmit={handleSaveNewPassword} className="space-y-4">
+              <div className="flex items-center mb-1">
+                <button
+                  type="button"
+                  onClick={() => setStep('forgot_email')}
+                  className="p-2 -ml-2 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-full transition flex items-center gap-1.5 text-xs font-bold"
+                  title="Go back"
+                >
+                  <span>←</span> Back
+                </button>
+              </div>
+
+              <div className="text-center mb-2">
+                <h2 className="text-sm font-bold text-neutral-800">Create New Password</h2>
+                <p className="text-xs text-neutral-500 mt-1">Enter your new secure password for <span className="font-bold text-neutral-800">{forgotEmailInput}</span></p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 mb-1 uppercase tracking-wider">New Password</label>
+                <input
+                  type="password"
+                  required
+                  className="w-full px-4 py-3 bg-neutral-50 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 text-neutral-900 text-sm"
+                  placeholder="At least 6 characters"
+                  value={newPasswordInput}
+                  onChange={(e) => setNewPasswordInput(e.target.value)}
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl transition shadow-md text-sm"
+              >
+                Save New Password & Sign In
+              </button>
+            </form>
+          )}
+
+        </div>
+      </div>
+    );
+  }
+
+  // --- RENDER: MAIN DASHBOARD (DINE & DASH MENU, CART, & LIVE MAP) ---
+  const totalCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  return (
+    <div className="min-h-screen bg-neutral-100 text-neutral-900 font-sans flex flex-col">
+      
+      {/* Top Header Navigation */}
+      <header className="bg-white border-b border-neutral-200 px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50">
+        
+        <div className="flex items-center space-x-4">
+          <h1 className="text-2xl font-black tracking-widest text-red-600 drop-shadow-sm">
+            DINE <span className="text-neutral-900">&</span> DASH
+          </h1>
+          <span className="text-xs bg-red-50 text-red-700 font-extrabold px-3 py-1.5 rounded-full border border-red-200">
+            Welcome, {getFirstName(currentUser)}!
+          </span>
+        </div>
+
+        {/* Navigation Tabs: Dine, Dash, Cart */}
+        <div className="flex bg-neutral-100 p-1.5 rounded-full border border-neutral-200 gap-1 sm:gap-2">
+          <button
+            onClick={() => setMainTab('dine')}
+            className={`flex items-center space-x-2 px-4 sm:px-6 py-2.5 text-xs font-extrabold rounded-full transition-all duration-300 transform hover:scale-105 ${
+              mainTab === 'dine' ? 'bg-red-600 text-white shadow-md' : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-200'
+            }`}
+          >
+            <span className="text-base">🍕</span>
+            <span>Dine Menu</span>
+          </button>
+          
+          <button
+            onClick={() => setMainTab('dash')}
+            className={`flex items-center space-x-2 px-4 sm:px-6 py-2.5 text-xs font-extrabold rounded-full transition-all duration-300 transform hover:scale-105 ${
+              mainTab === 'dash' ? 'bg-red-600 text-white shadow-md' : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-200'
+            }`}
+          >
+            <span className="text-base">🚗</span>
+            <span>Dash Ride</span>
+          </button>
+
+          <button
+            onClick={() => setMainTab('cart')}
+            className={`flex items-center space-x-2 px-4 sm:px-6 py-2.5 text-xs font-extrabold rounded-full transition-all duration-300 transform hover:scale-105 relative ${
+              mainTab === 'cart' ? 'bg-red-600 text-white shadow-md' : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-200'
+            }`}
+          >
+            <span className="text-base">🛒</span>
+            <span>Cart</span>
+            {totalCartCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-neutral-900 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow">
+                {totalCartCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        <button
+          onClick={handleLogout}
+          className="text-xs font-bold text-red-600 hover:bg-red-50 px-4 py-2 rounded-xl border border-red-200 transition"
+        >
+          Sign Out
+        </button>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="flex-1 p-6 max-w-6xl w-full mx-auto">
+        
+        {/* --- DINE SECTION (REFINED FOOD MENU & CART INTEGRATION) --- */}
+        {mainTab === 'dine' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-black text-neutral-900">Explore Dine Menu</h2>
+                <p className="text-xs text-neutral-500 font-medium">Authentic traditional dishes and fast favorites delivered hot.</p>
+              </div>
+
+              {/* Category Filters */}
+              <div className="flex bg-white p-1 rounded-2xl border border-neutral-200 shadow-sm gap-1">
+                {['All', 'Traditional', 'Fast Food', 'Drinks'].map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition ${
+                      selectedCategory === category ? 'bg-red-600 text-white shadow' : 'text-neutral-600 hover:bg-neutral-100'
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setDineCategory(cat)}
-                  className={`px-5 py-2.5 rounded-2xl text-xs font-black whitespace-nowrap transition-all border ${
-                    dineCategory === cat
-                      ? 'bg-neutral-900 text-white border-neutral-900 shadow-md'
-                      : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300 shadow-sm'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredMenu.length === 0 ? (
-                <div className="col-span-full bg-white rounded-3xl p-12 text-center border border-neutral-200 shadow-sm">
-                  <span className="text-4xl mb-3 block">🔍</span>
-                  <h3 className="text-base font-black text-neutral-800 mb-1">No items found</h3>
-                  <p className="text-xs text-neutral-500">Try adjusting your search query or selecting a different category.</p>
-                </div>
-              ) : (
-                filteredMenu.map((item) => {
-                  const inCart = cart.find(c => c.id === item.id);
-                  return (
-                    <div key={item.id} className="bg-white rounded-3xl p-5 border border-neutral-200 shadow-sm hover:shadow-md transition flex flex-col justify-between">
-                      <div>
-                        <div className="flex justify-between items-start mb-3">
-                          <span className="text-4xl p-3 bg-neutral-50 rounded-2xl border border-neutral-100">{item.image}</span>
-                          <div className="flex flex-col items-end">
-                            <span className="text-xs font-extrabold px-3 py-1 bg-neutral-100 text-neutral-600 rounded-full mb-1">
-                              {item.category}
-                            </span>
-                            <span className="text-[10px] font-bold text-amber-600">★ {item.rating} ({item.reviewsCount})</span>
-                          </div>
-                        </div>
-                        <h3 className="text-base font-black text-neutral-900 mb-1">{item.name}</h3>
-                        <p className="text-xs text-neutral-500 font-medium mb-3 leading-relaxed">{item.description}</p>
-                        <span className="text-[10px] font-bold text-neutral-400 bg-neutral-50 px-2.5 py-1 rounded-lg border border-neutral-100 inline-block mb-4">
-                          ⏱️ Prep: {item.prepTime}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-3 border-t border-neutral-100">
-                        <span className="text-base font-black text-neutral-900">{item.price} ETB</span>
-                        {inCart ? (
-                          <div className="flex items-center space-x-2 bg-neutral-100 p-1 rounded-xl">
-                            <button
-                              onClick={() => updateQuantity(item.id, -1)}
-                              className="w-7 h-7 bg-white rounded-lg shadow-sm font-bold text-neutral-800 flex items-center justify-center hover:bg-neutral-50"
-                            >
-                              -
-                            </button>
-                            <span className="text-xs font-black px-2">{inCart.quantity}</span>
-                            <button
-                              onClick={() => updateQuantity(item.id, 1)}
-                              className="w-7 h-7 bg-white rounded-lg shadow-sm font-bold text-neutral-800 flex items-center justify-center hover:bg-neutral-50"
-                            >
-                              +
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => addToCart(item)}
-                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs rounded-xl shadow transition"
-                          >
-                            Add to Cart
-                          </button>
-                        )}
-                      </div>
+            {/* Menu Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {filteredMenu.map((item) => {
+                const inCartItem = cart.find(c => c.id === item.id);
+                return (
+                  <div key={item.id} className="bg-white border border-neutral-200 rounded-3xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between">
+                    <div>
+                      <div className="text-4xl mb-3 text-center bg-neutral-50 py-5 rounded-2xl border border-neutral-100">{item.image}</div>
+                      <span className="text-[10px] font-extrabold uppercase text-red-600 tracking-wider bg-red-50 px-2.5 py-1 rounded-md">{item.category}</span>
+                      <h3 className="font-bold text-lg text-neutral-900 mt-2">{item.name}</h3>
+                      <p className="text-xs text-neutral-500 mt-1 leading-relaxed">{item.description}</p>
                     </div>
-                  );
-                })
-              )}
+
+                    <div className="mt-6 pt-4 border-t border-neutral-100 flex items-center justify-between">
+                      <span className="font-black text-base text-neutral-900">{item.price} ETB</span>
+                      
+                      {inCartItem ? (
+                        <div className="flex items-center space-x-2 bg-neutral-100 p-1 rounded-xl">
+                          <button 
+                            onClick={() => updateQuantity(item.id, -1)}
+                            className="w-7 h-7 bg-white rounded-lg shadow-sm font-bold flex items-center justify-center text-xs hover:bg-red-50 hover:text-red-600 transition"
+                          >
+                            -
+                          </button>
+                          <span className="text-xs font-black px-1">{inCartItem.quantity}</span>
+                          <button 
+                            onClick={() => updateQuantity(item.id, 1)}
+                            className="w-7 h-7 bg-white rounded-lg shadow-sm font-bold flex items-center justify-center text-xs hover:bg-red-50 hover:text-red-600 transition"
+                          >
+                            +
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => addToCart(item)}
+                          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl text-xs transition shadow-sm"
+                        >
+                          + Add to Cart
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
 
-        {/* --- DASH SECTION --- */}
+        {/* --- DASH SECTION (RIDE HILING & LIVE MAP MOCK) --- */}
         {mainTab === 'dash' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-black text-neutral-900">Dash Ride Service</h2>
-              <p className="text-xs text-neutral-500 font-medium">Fast urban transit across Addis Ababa with real-time tracking.</p>
+              <h2 className="text-2xl font-black text-neutral-900">Dash Ride Hailing</h2>
+              <p className="text-xs text-neutral-500 font-medium">Book a reliable ride across Addis Ababa instantly.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white rounded-3xl p-6 border border-neutral-200 shadow-sm space-y-4 flex flex-col justify-between">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Trip Control Panel */}
+              <div className="bg-white border border-neutral-200 rounded-3xl p-6 shadow-sm space-y-4 flex flex-col justify-between">
                 <div className="space-y-4">
-                  <h3 className="text-sm font-black text-neutral-900 uppercase tracking-wider">Book Your Ride</h3>
-                  
                   <div>
-                    <label className="block text-[11px] font-bold text-neutral-500 uppercase tracking-wider mb-1">Pickup Location</label>
+                    <label className="block text-xs font-bold text-neutral-700 mb-1 uppercase tracking-wider">Pickup Location</label>
                     <input
                       type="text"
                       className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-300 rounded-xl text-xs font-semibold text-neutral-800 focus:outline-none focus:ring-2 focus:ring-red-600"
@@ -310,7 +797,7 @@ export default function App() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-neutral-500 uppercase tracking-wider mb-1">Destination</label>
+                    <label className="block text-xs font-bold text-neutral-700 mb-1 uppercase tracking-wider">Destination</label>
                     <input
                       type="text"
                       className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-300 rounded-xl text-xs font-semibold text-neutral-800 focus:outline-none focus:ring-2 focus:ring-red-600"
@@ -319,38 +806,21 @@ export default function App() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-neutral-500 uppercase tracking-wider mb-1">Vehicle Tier</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {['standard', 'comfort', 'xl'].map((tier) => (
-                        <button
-                          key={tier}
-                          onClick={() => setRideType(tier)}
-                          className={`py-2 rounded-xl text-[10px] font-black uppercase border transition ${
-                            rideType === tier ? 'bg-neutral-900 text-white border-neutral-900' : 'bg-neutral-50 text-neutral-600 border-neutral-200'
-                          }`}
-                        >
-                          {tier}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-neutral-50 rounded-2xl border border-neutral-200 space-y-2">
-                    <div className="flex justify-between text-xs font-medium text-neutral-600">
+                  <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-2">
+                    <div className="flex justify-between text-xs font-bold text-neutral-600">
                       <span>Estimated Fare:</span>
-                      <span className="font-bold text-neutral-900">{rideType === 'standard' ? '350 ETB' : rideType === 'comfort' ? '480 ETB' : '650 ETB'}</span>
+                      <span className="text-neutral-900 font-black">250 ETB</span>
                     </div>
-                    <div className="flex justify-between text-xs font-medium text-neutral-600">
+                    <div className="flex justify-between text-xs font-bold text-neutral-600">
                       <span>Estimated Time:</span>
-                      <span className="font-bold text-neutral-900">18 mins</span>
+                      <span className="text-neutral-900 font-black">15 mins</span>
                     </div>
                   </div>
                 </div>
 
                 <button
-                  onClick={handleRequestRide}
-                  className={`w-full py-3 font-extrabold text-xs rounded-xl shadow transition ${
+                  onClick={() => setTripActive(!tripActive)}
+                  className={`w-full py-3 rounded-xl font-extrabold text-xs transition shadow-md ${
                     tripActive ? 'bg-neutral-900 hover:bg-neutral-800 text-white' : 'bg-red-600 hover:bg-red-700 text-white'
                   }`}
                 >
@@ -358,48 +828,44 @@ export default function App() {
                 </button>
               </div>
 
-              <div className="md:col-span-2 bg-white rounded-3xl p-6 border border-neutral-200 shadow-sm flex flex-col justify-between relative overflow-hidden min-h-[380px]">
-                <div className="flex justify-between items-center z-10">
-                  <div>
-                    <h3 className="text-sm font-black text-neutral-900 uppercase tracking-wider">Live Route Simulation</h3>
-                    <p className="text-xs text-neutral-500 font-medium">Addis Ababa City Transit</p>
-                  </div>
-                  <span className={`text-xs font-extrabold px-3 py-1 rounded-full border ${
-                    tripActive ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'
-                  }`}>
-                    {tripActive ? '🚗 Ride in Progress' : '🔍 Searching for Driver'}
+              {/* Interactive Map Mock */}
+              <div className="lg:col-span-2 bg-white border border-neutral-200 rounded-3xl p-6 shadow-sm flex flex-col h-[400px] relative overflow-hidden">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-neutral-500">Live Radar View</span>
+                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${tripActive ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                    {tripActive ? 'Driver Assigned & En Route' : 'Searching for nearby drivers...'}
                   </span>
                 </div>
 
-                <div className="my-6 bg-neutral-900 rounded-2xl p-6 flex-1 flex flex-col items-center justify-center relative border border-neutral-800 shadow-inner">
+                {/* Map Box Mock */}
+                <div className="flex-1 bg-neutral-900 rounded-2xl relative flex items-center justify-center overflow-hidden border border-neutral-800">
+                  {/* Grid lines background decoration */}
                   <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
-                  
-                  <div className="flex flex-col sm:flex-row items-center justify-between w-full max-w-md gap-4 z-10">
-                    <div className="bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/15 text-center">
-                      <span className="text-[10px] text-neutral-400 font-bold uppercase block tracking-wider">Pickup</span>
-                      <span className="text-xs font-extrabold text-white">{pickupLocation}</span>
-                    </div>
 
-                    <div className="flex-1 flex items-center justify-center w-full">
-                      <div className="w-full h-0.5 bg-red-600 relative">
-                        <div className={`absolute top-1/2 -translate-y-1/2 text-xl transition-all duration-1000 ${
-                          tripActive ? 'left-full animate-pulse' : 'left-1/2'
-                        }`}>
-                          🚗
-                        </div>
+                  {/* Route line simulation */}
+                  <div className="absolute w-3/4 h-1 bg-red-500/50 rounded-full transform -rotate-12 animate-pulse"></div>
+
+                  {/* Pins */}
+                  <div className="absolute left-1/4 top-1/3 flex flex-col items-center">
+                    <span className="bg-white text-neutral-900 text-[10px] font-bold px-2 py-0.5 rounded shadow mb-1">Pickup</span>
+                    <div className="w-4 h-4 bg-red-600 rounded-full border-2 border-white shadow-lg animate-ping absolute"></div>
+                    <div className="w-4 h-4 bg-red-600 rounded-full border-2 border-white shadow-lg"></div>
+                  </div>
+
+                  <div className="absolute right-1/4 bottom-1/3 flex flex-col items-center">
+                    <span className="bg-white text-neutral-900 text-[10px] font-bold px-2 py-0.5 rounded shadow mb-1">Destination</span>
+                    <div className="w-4 h-4 bg-neutral-900 rounded-full border-2 border-white shadow-lg"></div>
+                  </div>
+
+                  {tripActive && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
+                      <div className="bg-white px-6 py-4 rounded-2xl shadow-xl text-center space-y-1">
+                        <span className="text-2xl">🚗</span>
+                        <p className="text-xs font-black text-neutral-900">Your driver is arriving in 3 mins</p>
+                        <p className="text-[11px] text-neutral-500 font-medium">Toyota Corolla • Plate 2-44102</p>
                       </div>
                     </div>
-
-                    <div className="bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/15 text-center">
-                      <span className="text-[10px] text-neutral-400 font-bold uppercase block tracking-wider">Destination</span>
-                      <span className="text-xs font-extrabold text-white">{destinationLocation}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center text-xs text-neutral-500 font-medium z-10 bg-neutral-50 p-3 rounded-2xl border border-neutral-200">
-                  <span>Driver: {driverAssigned ? `${driverAssigned.name} (${driverAssigned.car})` : 'Assigning driver...'}</span>
-                  <span>{driverAssigned ? `Rating: ★ ${driverAssigned.rating} (${driverAssigned.phone})` : 'Waiting...'}</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -408,57 +874,56 @@ export default function App() {
 
         {/* --- CART SECTION --- */}
         {mainTab === 'cart' && (
-          <div className="space-y-6">
+          <div className="space-y-6 max-w-2xl mx-auto">
             <div>
               <h2 className="text-2xl font-black text-neutral-900">Your Order Cart</h2>
-              <p className="text-xs text-neutral-500 font-medium">Review your selected items before checkout.</p>
+              <p className="text-xs text-neutral-500 font-medium">Review your items before final checkout.</p>
             </div>
 
             {cart.length === 0 ? (
-              <div className="bg-white rounded-3xl p-12 text-center border border-neutral-200 shadow-sm">
-                <span className="text-5xl mb-3 block">🛒</span>
-                <h3 className="text-base font-black text-neutral-800 mb-1">Your cart is currently empty</h3>
-                <p className="text-xs text-neutral-500 mb-6">Explore the Dine menu to add delicious meals and drinks.</p>
+              <div className="bg-white border border-neutral-200 rounded-3xl p-12 text-center space-y-3">
+                <span className="text-5xl">🛒</span>
+                <p className="text-sm font-bold text-neutral-700">Your cart is currently empty.</p>
                 <button
                   onClick={() => setMainTab('dine')}
-                  className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs rounded-xl shadow transition"
+                  className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl text-xs transition shadow-sm inline-block"
                 >
-                  Browse Dine Menu
+                  Explore Menu
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="md:col-span-2 space-y-4">
+              <div className="bg-white border border-neutral-200 rounded-3xl p-6 shadow-sm space-y-6">
+                <div className="divide-y divide-neutral-100">
                   {cart.map((item) => (
-                    <div key={item.id} className="bg-white rounded-3xl p-5 border border-neutral-200 shadow-sm flex items-center justify-between">
+                    <div key={item.id} className="py-4 flex items-center justify-between first:pt-0 last:pb-0">
                       <div className="flex items-center space-x-4">
-                        <span className="text-4xl p-3 bg-neutral-50 rounded-2xl border border-neutral-100">{item.image}</span>
+                        <span className="text-3xl bg-neutral-50 p-2.5 rounded-2xl border border-neutral-100">{item.image}</span>
                         <div>
-                          <h3 className="text-sm font-black text-neutral-900">{item.name}</h3>
-                          <p className="text-xs text-neutral-500 font-medium">{item.price} ETB each</p>
+                          <h4 className="font-bold text-sm text-neutral-900">{item.name}</h4>
+                          <span className="text-xs text-neutral-500">{item.price} ETB each</span>
                         </div>
                       </div>
 
                       <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-2 bg-neutral-100 p-1 rounded-xl">
-                          <button
+                          <button 
                             onClick={() => updateQuantity(item.id, -1)}
-                            className="w-7 h-7 bg-white rounded-lg shadow-sm font-bold text-neutral-800 flex items-center justify-center hover:bg-neutral-50"
+                            className="w-6 h-6 bg-white rounded-lg shadow-sm font-bold flex items-center justify-center text-xs hover:bg-red-50 hover:text-red-600 transition"
                           >
                             -
                           </button>
-                          <span className="text-xs font-black px-2">{item.quantity}</span>
-                          <button
+                          <span className="text-xs font-black px-1">{item.quantity}</span>
+                          <button 
                             onClick={() => updateQuantity(item.id, 1)}
-                            className="w-7 h-7 bg-white rounded-lg shadow-sm font-bold text-neutral-800 flex items-center justify-center hover:bg-neutral-50"
+                            className="w-6 h-6 bg-white rounded-lg shadow-sm font-bold flex items-center justify-center text-xs hover:bg-red-50 hover:text-red-600 transition"
                           >
                             +
                           </button>
                         </div>
-                        <span className="text-sm font-black text-neutral-900 w-20 text-right">{item.price * item.quantity} ETB</span>
+                        <span className="font-black text-sm text-neutral-900 w-16 text-right">{item.price * item.quantity} ETB</span>
                         <button
                           onClick={() => removeFromCart(item.id)}
-                          className="text-neutral-400 hover:text-red-600 font-bold text-sm transition p-1"
+                          className="text-neutral-400 hover:text-red-600 text-xs font-bold transition p-1"
                           title="Remove item"
                         >
                           ✕
@@ -468,98 +933,32 @@ export default function App() {
                   ))}
                 </div>
 
-                <div className="bg-white rounded-3xl p-6 border border-neutral-200 shadow-sm space-y-4 h-fit">
-                  <h3 className="text-sm font-black text-neutral-900 uppercase tracking-wider">Order Summary</h3>
-                  
-                  <div className="space-y-2 py-3 border-y border-neutral-100 text-xs font-medium text-neutral-600">
-                    <div className="flex justify-between">
-                      <span>Subtotal</span>
-                      <span className="font-bold text-neutral-900">{getSubtotal()} ETB</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Promo Discount ({activePromo})</span>
-                      <span className="font-bold text-green-600">-{getDiscount()} ETB</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Delivery Fee</span>
-                      <span className="font-bold text-neutral-900">{getDeliveryFee()} ETB</span>
-                    </div>
+                <div className="border-t border-neutral-200 pt-4 space-y-2">
+                  <div className="flex justify-between text-xs text-neutral-600 font-semibold">
+                    <span>Subtotal</span>
+                    <span>{getTotalCartPrice()} ETB</span>
                   </div>
-
-                  <div className="flex justify-between items-center text-sm font-black text-neutral-900">
+                  <div className="flex justify-between text-xs text-neutral-600 font-semibold">
+                    <span>Delivery Fee</span>
+                    <span>50 ETB</span>
+                  </div>
+                  <div className="flex justify-between text-base font-black text-neutral-900 pt-2 border-t border-neutral-100">
                     <span>Total</span>
-                    <span className="text-lg text-red-600">{getTotalCartPrice()} ETB</span>
+                    <span>{getTotalCartPrice() + 50} ETB</span>
                   </div>
-
-                  <button
-                    onClick={() => {
-                      const total = getTotalCartPrice();
-                      if (userBalance < total) {
-                        alert('Insufficient wallet balance! Please top up.');
-                        return;
-                      }
-                      setUserBalance(prev => prev - total);
-                      alert(`Order successfully placed! Paid ${total} ETB from your wallet. Thank you for using Dine & Dash!`);
-                      setCart([]);
-                    }}
-                    className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs rounded-xl shadow transition"
-                  >
-                    Confirm & Pay ({getTotalCartPrice()} ETB)
-                  </button>
                 </div>
+
+                <button
+                  onClick={() => {
+                    alert('Order successfully placed! Your food is being prepared.');
+                    setCart([]);
+                  }}
+                  className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl transition shadow-md text-sm"
+                >
+                  Proceed to Checkout ({getTotalCartPrice() + 50} ETB)
+                </button>
               </div>
             )}
-          </div>
-        )}
-
-        {/* --- PROFILE / WALLET SECTION --- */}
-        {mainTab === 'profile' && (
-          <div className="space-y-6 max-w-2xl mx-auto">
-            <div>
-              <h2 className="text-2xl font-black text-neutral-900">User Profile & Wallet</h2>
-              <p className="text-xs text-neutral-500 font-medium">Manage your balance, promo codes, and account preferences.</p>
-            </div>
-
-            <div className="bg-white rounded-3xl p-6 border border-neutral-200 shadow-sm space-y-6">
-              <div className="flex items-center space-x-4 p-4 bg-neutral-50 rounded-2xl border border-neutral-100">
-                <div className="w-14 h-14 bg-red-600 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-md">
-                  HS
-                </div>
-                <div>
-                  <h3 className="text-base font-black text-neutral-900">Henon Samuel</h3>
-                  <p className="text-xs text-neutral-500 font-medium">henon.samuel@example.com • Addis Ababa</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-neutral-50 rounded-2xl border border-neutral-200">
-                  <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Wallet Balance</span>
-                  <span className="text-xl font-black text-neutral-900">{userBalance} ETB</span>
-                </div>
-                <div className="p-4 bg-neutral-50 rounded-2xl border border-neutral-200">
-                  <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Active Promo</span>
-                  <span className="text-xl font-black text-red-600">{activePromo}</span>
-                </div>
-              </div>
-
-              <div className="space-y-3 pt-2">
-                <h4 className="text-xs font-black text-neutral-800 uppercase tracking-wider">Quick Top Up Wallet</h4>
-                <div className="flex space-x-3">
-                  {[200, 500, 1000].map(amount => (
-                    <button
-                      key={amount}
-                      onClick={() => {
-                        setUserBalance(prev => prev + amount);
-                        addNotification(`Successfully added ${amount} ETB to wallet!`);
-                      }}
-                      className="flex-1 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl text-xs font-black shadow transition"
-                    >
-                      +{amount} ETB
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
           </div>
         )}
 
