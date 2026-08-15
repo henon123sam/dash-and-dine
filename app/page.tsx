@@ -28,7 +28,6 @@ const mockFoodMenu: FoodItem[] = [
 ];
 
 export default function DineAndDashApp() {
-  // Database synchronization using localStorage
   const [accounts, setAccounts] = useState<UserAccount[]>([]);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
 
@@ -51,6 +50,15 @@ export default function DineAndDashApp() {
     const active = localStorage.getItem('dine_and_dash_current_user');
     if (active) setCurrentUser(active);
   }, []);
+
+  // Helper to get user's first name
+  const getFirstName = (emailOrPhone: string) => {
+    const account = accounts.find(acc => acc.email.toLowerCase() === emailOrPhone.toLowerCase());
+    if (account && account.fullName) {
+      return account.fullName.split(' ')[0];
+    }
+    return emailOrPhone.split('@')[0];
+  };
 
   const saveNewAccount = (newAcc: UserAccount) => {
     const updated = [...accounts, newAcc];
@@ -550,26 +558,37 @@ export default function DineAndDashApp() {
       
       {/* Top Header Navigation */}
       <header className="bg-white border-b border-neutral-200 px-6 py-4 flex items-center justify-between shadow-sm">
-        <div className="flex items-center space-x-3">
-          <h1 className="text-xl font-black text-red-600 tracking-wider">DINE & DASH</h1>
-          <span className="text-xs bg-red-50 text-red-600 font-bold px-2.5 py-1 rounded-full border border-red-200">
-            Welcome, {currentUser}
+        
+        {/* Prominent Bold Branding */}
+        <div className="flex items-center space-x-4">
+          <h1 className="text-2xl font-black tracking-widest text-red-600 drop-shadow-sm">
+            DINE <span className="text-neutral-900">&</span> DASH
+          </h1>
+          <span className="text-xs bg-red-50 text-red-700 font-extrabold px-3 py-1.5 rounded-full border border-red-200">
+            Welcome, {getFirstName(currentUser)}!
           </span>
         </div>
 
-        {/* Central Mode Switcher: DINE (Food) vs DASH (Trip Map) */}
-        <div className="flex bg-neutral-100 p-1 rounded-full border border-neutral-200">
+        {/* Central Mode Switcher: DINE (Food Icon) vs DASH (Car Icon) with Hover Zoom/Expand */}
+        <div className="flex bg-neutral-100 p-1.5 rounded-full border border-neutral-200 gap-2">
           <button
             onClick={() => setMainTab('dine')}
-            className={`px-6 py-2 text-xs font-extrabold rounded-full transition ${mainTab === 'dine' ? 'bg-red-600 text-white shadow-md' : 'text-neutral-600 hover:text-neutral-900'}`}
+            className={`flex items-center space-x-2 px-6 py-2.5 text-xs font-extrabold rounded-full transition-all duration-300 transform hover:scale-105 ${
+              mainTab === 'dine' ? 'bg-red-600 text-white shadow-md' : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-200'
+            }`}
           >
-            🍽️ Dine (Food)
+            <span className="text-base">🍕</span>
+            <span>Dine</span>
           </button>
+          
           <button
             onClick={() => setMainTab('dash')}
-            className={`px-6 py-2 text-xs font-extrabold rounded-full transition ${mainTab === 'dash' ? 'bg-red-600 text-white shadow-md' : 'text-neutral-600 hover:text-neutral-900'}`}
+            className={`flex items-center space-x-2 px-6 py-2.5 text-xs font-extrabold rounded-full transition-all duration-300 transform hover:scale-105 ${
+              mainTab === 'dash' ? 'bg-red-600 text-white shadow-md' : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-200'
+            }`}
           >
-            🗺️ Dash (Live Map & Trips)
+            <span className="text-base">🚗</span>
+            <span>Dash</span>
           </button>
         </div>
 
@@ -696,7 +715,7 @@ export default function DineAndDashApp() {
                 {/* Visual Map Pin Simulation */}
                 <div className="relative z-10 my-auto text-center py-12 space-y-4">
                   <div className="inline-block p-4 bg-red-600 text-white rounded-3xl shadow-2xl text-2xl font-black animate-bounce">
-                    📍
+                    🚗
                   </div>
                   <div className="bg-black/80 backdrop-blur border border-neutral-800 p-4 rounded-2xl max-w-sm mx-auto shadow-xl">
                     <p className="text-xs text-neutral-400 font-bold uppercase">Route Status</p>
