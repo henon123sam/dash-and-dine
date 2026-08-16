@@ -25,8 +25,14 @@ interface CartItem extends MenuItem {
 export default function DineAndDashApp() {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [authView, setAuthView] = useState<'signin' | 'signup' | 'forgot' | null>('signin');
+  
+  // Inputs
+  const [identifierInput, setIdentifierInput] = useState(''); // Email or Phone for sign in
+  const [fullNameInput, setFullNameInput] = useState('');
+  const [phoneInput, setPhoneInput] = useState('');
   const [emailInput, setEmailInput] = useState('');
   const [passInput, setPassInput] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const [activeTab, setActiveTab] = useState<'feed' | 'cart'>('feed');
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
@@ -97,14 +103,14 @@ export default function DineAndDashApp() {
           {authView === 'forgot' ? (
             <div className="space-y-4">
               <input
-                type="email"
-                placeholder="Enter your email"
+                type="text"
+                placeholder="Enter your email or phone number"
                 value={emailInput}
                 onChange={e => setEmailInput(e.target.value)}
                 className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-red-500"
               />
               <button
-                onClick={() => { alert('Password reset link sent to email!'); setAuthView('signin'); }}
+                onClick={() => { alert('Password reset instructions sent!'); setAuthView('signin'); }}
                 className="w-full py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black text-xs transition"
               >
                 Send Reset Link
@@ -116,8 +122,22 @@ export default function DineAndDashApp() {
                 Back to Sign In
               </button>
             </div>
-          ) : (
+          ) : authView === 'signup' ? (
             <div className="space-y-4">
+              <input
+                type="text"
+                placeholder="Full Name"
+                value={fullNameInput}
+                onChange={e => setFullNameInput(e.target.value)}
+                className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-red-500"
+              />
+              <input
+                type="tel"
+                placeholder="Phone Number (e.g. +251...)"
+                value={phoneInput}
+                onChange={e => setPhoneInput(e.target.value)}
+                className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-red-500"
+              />
               <input
                 type="email"
                 placeholder="Email address"
@@ -125,27 +145,76 @@ export default function DineAndDashApp() {
                 onChange={e => setEmailInput(e.target.value)}
                 className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-red-500"
               />
-              <input
-                type="password"
-                placeholder="Password"
-                value={passInput}
-                onChange={e => setPassInput(e.target.value)}
-                className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-red-500"
-              />
-
-              {authView === 'signin' && (
-                <div className="flex justify-end">
-                  <button onClick={() => setAuthView('forgot')} className="text-[10px] text-neutral-400 hover:text-red-500 font-bold">
-                    Forgot Password?
-                  </button>
-                </div>
-              )}
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Password"
+                  value={passInput}
+                  onChange={e => setPassInput(e.target.value)}
+                  className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 pr-10 text-xs text-white focus:outline-none focus:border-red-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white text-xs font-bold"
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
 
               <button
-                onClick={() => { setCurrentUser(emailInput || 'User'); setAuthView(null); }}
+                onClick={() => { setCurrentUser(fullNameInput || phoneInput || 'User'); setAuthView(null); }}
                 className="w-full py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black text-xs transition"
               >
-                {authView === 'signin' ? 'Sign In' : 'Create Account'}
+                Create Account
+              </button>
+
+              <div className="text-center pt-2">
+                <p className="text-xs text-neutral-400">
+                  Already have an account?{' '}
+                  <button onClick={() => setAuthView('signin')} className="text-red-500 font-black hover:underline">
+                    Sign In
+                  </button>
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <input
+                type="text"
+                placeholder="Email or Phone Number"
+                value={identifierInput}
+                onChange={e => setIdentifierInput(e.target.value)}
+                className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-red-500"
+              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Password"
+                  value={passInput}
+                  onChange={e => setPassInput(e.target.value)}
+                  className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 pr-10 text-xs text-white focus:outline-none focus:border-red-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white text-xs font-bold"
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+
+              <div className="flex justify-end">
+                <button onClick={() => setAuthView('forgot')} className="text-[10px] text-neutral-400 hover:text-red-500 font-bold">
+                  Forgot Password?
+                </button>
+              </div>
+
+              <button
+                onClick={() => { setCurrentUser(identifierInput || 'User'); setAuthView(null); }}
+                className="w-full py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black text-xs transition"
+              >
+                Sign In
               </button>
 
               <div className="relative flex py-2 items-center">
@@ -158,32 +227,32 @@ export default function DineAndDashApp() {
                 onClick={() => { setCurrentUser('Google User'); setAuthView(null); }}
                 className="w-full py-3 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl font-bold text-xs transition flex items-center justify-center space-x-2"
               >
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.8 7.4l3.7 2.9C6.4 7.3 9 5 12 5z"/>
+                  <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/>
+                  <path fill="#FBBC05" d="M5.5 14.7c-.2-.8-.4-1.7-.4-2.7s.2-1.9.4-2.7L1.8 6.4C.7 8.6 0 11.2 0 14s.7 5.4 1.8 7.6l3.7-2.9z"/>
+                  <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.6-2.3-6.5-5.3L1.8 15.9C3.7 19.7 7.5 23 12 23z"/>
+                </svg>
                 <span>Continue with Google</span>
               </button>
 
               <button
                 onClick={() => { setCurrentUser('Guest'); setAuthView(null); }}
-                className="w-full py-3 bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-300 rounded-xl font-bold text-xs transition"
+                className="w-full py-3 bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-300 rounded-xl font-bold text-xs transition flex items-center justify-center space-x-2"
               >
-                Continue as Guest
+                <svg className="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span>Continue as Guest</span>
               </button>
 
               <div className="text-center pt-2">
-                {authView === 'signin' ? (
-                  <p className="text-xs text-neutral-400">
-                    Don't have an account?{' '}
-                    <button onClick={() => setAuthView('signup')} className="text-red-500 font-black hover:underline">
-                      Sign Up
-                    </button>
-                  </p>
-                ) : (
-                  <p className="text-xs text-neutral-400">
-                    Already have an account?{' '}
-                    <button onClick={() => setAuthView('signin')} className="text-red-500 font-black hover:underline">
-                      Sign In
-                    </button>
-                  </p>
-                )}
+                <p className="text-xs text-neutral-400">
+                  Don't have an account?{' '}
+                  <button onClick={() => setAuthView('signup')} className="text-red-500 font-black hover:underline">
+                    Sign Up
+                  </button>
+                </p>
               </div>
             </div>
           )}
