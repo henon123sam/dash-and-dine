@@ -79,17 +79,14 @@ export default function DineAndDashApp() {
       {/* HEADER */}
       <header className="bg-neutral-900 border-b border-neutral-800 sticky top-0 z-50 px-6 py-3 flex items-center justify-between">
         <div onClick={() => { setActiveTab('feed'); setSelectedStore(null); }} className="cursor-pointer flex items-center space-x-2">
-          <div className="bg-red-600 text-white font-black px-3 py-1.5 rounded-xl text-sm flex items-center shadow-lg shadow-red-600/25">
+          <div className="bg-red-600 text-white font-black px-3.5 py-2 rounded-xl text-sm flex items-center shadow-lg shadow-red-600/25">
             <span>D</span>
-            <span className="text-neutral-300 mx-0.5">&</span>
+            <span className="text-neutral-300 mx-1">&</span>
             <span>D</span>
-            <svg className="w-4 h-4 ml-1 text-white animate-pulse" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 ml-1.5 text-white animate-pulse" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <h1 className="font-black text-sm tracking-tight text-white">
-            DINE <span className="text-red-500">&</span> DASH
-          </h1>
         </div>
 
         <div className="flex items-center space-x-2">
