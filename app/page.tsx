@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState } from 'interface' in window ? {} : React; // standard safe import setup
 
 interface MenuItem {
   id: string;
@@ -85,6 +85,27 @@ export default function DineAndDashApp() {
   const subtotal = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
   const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
 
+  // Helper to resolve display name based on user rules
+  const getDisplayName = (raw: string | null) => {
+    if (!raw) return 'Guest';
+    if (raw === 'Guest' || raw === 'Google User') return raw;
+    if (raw.includes('@')) {
+      const localPart = raw.split('@')[0];
+      return localPart;
+    }
+    return raw;
+  };
+
+  const handleSignIn = () => {
+    setCurrentUser(identifierInput || 'User');
+    setAuthView(null);
+  };
+
+  const handleSignUp = () => {
+    setCurrentUser(fullNameInput || phoneInput || emailInput || 'User');
+    setAuthView(null);
+  };
+
   if (authView) {
     return (
       <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans flex items-center justify-center p-4">
@@ -156,14 +177,23 @@ export default function DineAndDashApp() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white text-xs font-bold"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white text-xs font-bold focus:outline-none"
                 >
-                  {showPassword ? 'Hide' : 'Show'}
+                  {showPassword ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m14.41 14.41l-3.59-3.59" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
                 </button>
               </div>
 
               <button
-                onClick={() => { setCurrentUser(fullNameInput || phoneInput || 'User'); setAuthView(null); }}
+                onClick={handleSignUp}
                 className="w-full py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black text-xs transition"
               >
                 Create Account
@@ -180,6 +210,11 @@ export default function DineAndDashApp() {
             </div>
           ) : (
             <div className="space-y-4">
+              <div className="flex justify-end">
+                <button onClick={() => setAuthView('forgot')} className="text-xs text-neutral-400 hover:text-red-500 font-bold">
+                  Forgot Password?
+                </button>
+              </div>
               <input
                 type="text"
                 placeholder="Email or Phone Number"
@@ -198,20 +233,23 @@ export default function DineAndDashApp() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white text-xs font-bold"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white text-xs font-bold focus:outline-none"
                 >
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
-              </div>
-
-              <div className="flex justify-end">
-                <button onClick={() => setAuthView('forgot')} className="text-[10px] text-neutral-400 hover:text-red-500 font-bold">
-                  Forgot Password?
+                  {showPassword ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m14.41 14.41l-3.59-3.59" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
                 </button>
               </div>
 
               <button
-                onClick={() => { setCurrentUser(identifierInput || 'User'); setAuthView(null); }}
+                onClick={handleSignIn}
                 className="w-full py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black text-xs transition"
               >
                 Sign In
@@ -284,7 +322,7 @@ export default function DineAndDashApp() {
           <div className="space-y-6">
             <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 flex justify-between items-center">
               <div>
-                <h2 className="text-xl font-black text-white">Welcome back, {currentUser || 'Guest'}!</h2>
+                <h2 className="text-xl font-black text-white">Welcome, {getDisplayName(currentUser)}!</h2>
                 <p className="text-xs text-neutral-400 mt-1">Choose a restaurant below to view their menu.</p>
               </div>
             </div>
@@ -317,7 +355,7 @@ export default function DineAndDashApp() {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {selectedStore.menu.map(item => (
+              {selectedStore.menu.menuItems || selectedStore.menu.map(item => (
                 <div key={item.id} onClick={() => setItemModal(item)} className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 cursor-pointer flex justify-between items-center hover:border-red-500 transition">
                   <div>
                     <h4 className="font-black text-xs text-white">{item.name}</h4>
