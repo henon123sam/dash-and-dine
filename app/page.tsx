@@ -70,10 +70,82 @@ export default function DashApp() {
     localStorage.setItem('dash_app_accounts', JSON.stringify(updated));
   };
 
-  const updatePasswordInDb = (email: string, newPass: string) => {
+   const updatePasswordInDb = (email: string, newPass: string) => {
     const targetEmail = email.trim().toLowerCase();
     const existingIndex = accounts.findIndex(acc => acc.email.toLowerCase() === targetEmail);
     
+    let updated: UserAccount[];
+    if (existingIndex !== -1) {
+      // Update existing account's password
+      updated = accounts.map(acc => 
+        acc.email.toLowerCase() === targetEmail ? { ...acc, password: newPass } : acc
+      );
+    } else {
+      // Fallback if account wasn't in list yet
+      const newAcc: UserAccount = {
+        email: targetEmail,
+        password: newPass,
+        fullName: targetEmail.split('@')[0],
+        phone: '',
+      };
+      updated = [...accounts, newAcc];
+    }
+    
+    setAccounts(updated);
+    localStorage.setItem('dash_app_accounts', JSON.stringify(updated));
+  };
+   // Secure Password Reset States & Handlers
+  const [resetStep, setResetStep] = useState<"idle" | "email" | "otp" | "new">("idle");
+  const [resetEmail, setResetEmail] = useState("");
+  const [enteredOtp, setEnteredOtp] = useState("");
+  const [generatedOtp, setGeneratedOtp] = useState("");
+  const [newPassInput, setNewPassInput] = useState("");
+  const [confirmPassInput, setConfirmPassInput] = useState("");
+
+  const handleSendResetCode = (e: React.FormEvent) => {
+    e.preventDefault();
+    const target = resetEmail.trim().toLowerCase();
+    const exists = accounts.some(acc => acc.email.toLowerCase() === target);
+    
+    if (!exists) {
+      alert("No account found with this email address!");
+      return;
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setGeneratedOtp(code);
+    alert(`[Secure Verification] Your password reset code is: ${code}`);
+    setResetStep("otp");
+  };
+
+  const handleVerifyOtp = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (enteredOtp.trim() !== generatedOtp) {
+      alert("Invalid verification code. Please try again.");
+      return;
+    }
+    setResetStep("new");
+  };
+
+  const handleFinalPasswordReset = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassInput !== confirmPassInput) {
+      alert("Passwords do not match! Make sure both fields are identical.");
+      return;
+    }
+    if (newPassInput.length < 6) {
+      alert("Password must be at least 6 characters long.");
+      return;
+    }
+
+    updatePasswordInDb(resetEmail, newPassInput);
+    alert("Password successfully reset! You can now sign in.");
+    setResetStep("idle");
+    setResetEmail("");
+    setEnteredOtp("");
+    setNewPassInput("");
+    setConfirmPassInput("");
+  }; 
     let updated: UserAccount[];
     if (existingIndex !== -1) {
       updated = accounts.map(acc => 
@@ -124,9 +196,9 @@ export default function DashApp() {
     handleLoginSuccess('guest_user');
   };
 
-  // Auth screen states
+ // Auth screen states
   const [isSignUp, setIsSignUp] = useState(false);
-  const [step, setStep] = useState<'input' | 'signup_form' | 'password' | 'otp' | 'forgot_email' | 'forgot_new_pass'>('input');
+  const [step, setStep] = useState<'input' | 'signup_form' | 'password' | 'otp' | 'forgot_email' | 'forgot_otp' | 'forgot_new_pass'>('input');
   const [identifier, setIdentifier] = useState('');
   const [emailError, setEmailError] = useState('');
 
@@ -141,10 +213,56 @@ export default function DashApp() {
   const [signInPassword, setSignInPassword] = useState('');
   const [otpCode, setOtpCode] = useState('');
 
-  // Forgot password states
+  // Forgot password states & verification
   const [forgotEmailInput, setForgotEmailInput] = useState('');
+  const [forgotOtpInput, setForgotOtpInput] = useState('');
+  const [forgotGeneratedOtp, setForgotGeneratedOtp] = useState('');
   const [newPasswordInput, setNewPasswordInput] = useState('');
+  const [confirmNewPasswordInput, setConfirmNewPasswordInput] = useState('');
+  const handleSendResetCode = (e: React.FormEvent) => {
+    e.preventDefault();
+    const target = forgotEmailInput.trim().toLowerCase();
+    const exists = accounts.some(acc => acc.email.toLowerCase() === target);
+    
+    if (!exists) {
+      alert("No account found with this email address!");
+      return;
+    }
 
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setForgotGeneratedOtp(code);
+    alert(`[Secure Verification] Your password reset code is: ${code}`);
+    setStep('forgot_otp');
+  };
+
+  const handleVerifyOtp = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (forgotOtpInput.trim() !== forgotGeneratedOtp) {
+      alert("Invalid verification code. Please try again.");
+      return;
+    }
+    setStep('forgot_new_pass');
+  };
+
+  const handleFinalPasswordReset = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPasswordInput !== confirmNewPasswordInput) {
+      alert("Passwords do not match! Make sure both fields are identical.");
+      return;
+    }
+    if (newPasswordInput.length < 6) {
+      alert("Password must be at least 6 characters long.");
+      return;
+    }
+
+    updatePasswordInDb(forgotEmailInput, newPasswordInput);
+    alert("Password successfully reset! You can now sign in.");
+    setStep('input');
+    setForgotEmailInput('');
+    setForgotOtpInput('');
+    setNewPasswordInput('');
+    setConfirmNewPasswordInput('');
+  };
   const isEmail = (val: string) => val.includes('@');
 
   const handleSignupEmailChange = (val: string) => {
