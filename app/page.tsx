@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'interface' in window ? {} : React; // standard safe import setup
+import React, { useState } from 'react';
 
 interface MenuItem {
   id: string;
@@ -355,7 +355,7 @@ export default function DineAndDashApp() {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {selectedStore.menu.menuItems || selectedStore.menu.map(item => (
+              {selectedStore.menu.map(item => (
                 <div key={item.id} onClick={() => setItemModal(item)} className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 cursor-pointer flex justify-between items-center hover:border-red-500 transition">
                   <div>
                     <h4 className="font-black text-xs text-white">{item.name}</h4>
