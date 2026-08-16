@@ -23,6 +23,11 @@ interface CartItem extends MenuItem {
 }
 
 export default function DineAndDashApp() {
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
+  const [authView, setAuthView] = useState<'signin' | 'signup' | 'forgot' | null>('signin');
+  const [emailInput, setEmailInput] = useState('');
+  const [passInput, setPassInput] = useState('');
+
   const [activeTab, setActiveTab] = useState<'feed' | 'cart'>('feed');
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -74,6 +79,119 @@ export default function DineAndDashApp() {
   const subtotal = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
   const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
 
+  if (authView) {
+    return (
+      <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans flex items-center justify-center p-4">
+        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl max-w-md w-full p-8 space-y-6">
+          <div className="text-center space-y-2">
+            <h1 className="text-xl font-black tracking-tight text-white">
+              DINE <span className="text-red-500">&</span> DASH
+            </h1>
+            <p className="text-xs text-neutral-400">
+              {authView === 'signin' && 'Sign in to your account'}
+              {authView === 'signup' && 'Create a new account'}
+              {authView === 'forgot' && 'Reset your password'}
+            </p>
+          </div>
+
+          {authView === 'forgot' ? (
+            <div className="space-y-4">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={emailInput}
+                onChange={e => setEmailInput(e.target.value)}
+                className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-red-500"
+              />
+              <button
+                onClick={() => { alert('Password reset link sent to email!'); setAuthView('signin'); }}
+                className="w-full py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black text-xs transition"
+              >
+                Send Reset Link
+              </button>
+              <button
+                onClick={() => setAuthView('signin')}
+                className="w-full text-xs text-neutral-400 hover:text-white font-bold"
+              >
+                Back to Sign In
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <input
+                type="email"
+                placeholder="Email address"
+                value={emailInput}
+                onChange={e => setEmailInput(e.target.value)}
+                className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-red-500"
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={passInput}
+                onChange={e => setPassInput(e.target.value)}
+                className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-red-500"
+              />
+
+              {authView === 'signin' && (
+                <div className="flex justify-end">
+                  <button onClick={() => setAuthView('forgot')} className="text-[10px] text-neutral-400 hover:text-red-500 font-bold">
+                    Forgot Password?
+                  </button>
+                </div>
+              )}
+
+              <button
+                onClick={() => { setCurrentUser(emailInput || 'User'); setAuthView(null); }}
+                className="w-full py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black text-xs transition"
+              >
+                {authView === 'signin' ? 'Sign In' : 'Create Account'}
+              </button>
+
+              <div className="relative flex py-2 items-center">
+                <div className="flex-grow border-t border-neutral-800"></div>
+                <span className="flex-shrink mx-4 text-[10px] text-neutral-500 font-bold uppercase">Or</span>
+                <div className="flex-grow border-t border-neutral-800"></div>
+              </div>
+
+              <button
+                onClick={() => { setCurrentUser('Google User'); setAuthView(null); }}
+                className="w-full py-3 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl font-bold text-xs transition flex items-center justify-center space-x-2"
+              >
+                <span>Continue with Google</span>
+              </button>
+
+              <button
+                onClick={() => { setCurrentUser('Guest'); setAuthView(null); }}
+                className="w-full py-3 bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-300 rounded-xl font-bold text-xs transition"
+              >
+                Continue as Guest
+              </button>
+
+              <div className="text-center pt-2">
+                {authView === 'signin' ? (
+                  <p className="text-xs text-neutral-400">
+                    Don't have an account?{' '}
+                    <button onClick={() => setAuthView('signup')} className="text-red-500 font-black hover:underline">
+                      Sign Up
+                    </button>
+                  </p>
+                ) : (
+                  <p className="text-xs text-neutral-400">
+                    Already have an account?{' '}
+                    <button onClick={() => setAuthView('signin')} className="text-red-500 font-black hover:underline">
+                      Sign In
+                    </button>
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans flex flex-col">
       {/* HEADER */}
@@ -87,6 +205,7 @@ export default function DineAndDashApp() {
         <div className="flex items-center space-x-2">
           <button onClick={() => setActiveTab('feed')} className={`px-3 py-1.5 rounded-xl text-xs font-black ${activeTab === 'feed' ? 'bg-red-600 text-white' : 'bg-neutral-800 text-neutral-300'}`}>Feed</button>
           <button onClick={() => setActiveTab('cart')} className={`px-3 py-1.5 rounded-xl text-xs font-black ${activeTab === 'cart' ? 'bg-red-600 text-white' : 'bg-neutral-800 text-neutral-300'}`}>Cart ({totalItems})</button>
+          <button onClick={() => { setCurrentUser(null); setAuthView('signin'); }} className="px-3 py-1.5 rounded-xl text-xs font-bold bg-neutral-800 text-neutral-300 hover:bg-neutral-700">Sign Out</button>
         </div>
       </header>
 
@@ -94,9 +213,11 @@ export default function DineAndDashApp() {
       <main className="flex-1 max-w-4xl w-full mx-auto p-6">
         {activeTab === 'feed' && !selectedStore && (
           <div className="space-y-6">
-            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6">
-              <h2 className="text-xl font-black text-white">Order Food & Groceries</h2>
-              <p className="text-xs text-neutral-400 mt-1">Choose a restaurant below to view their menu.</p>
+            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-black text-white">Welcome back, {currentUser || 'Guest'}!</h2>
+                <p className="text-xs text-neutral-400 mt-1">Choose a restaurant below to view their menu.</p>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {stores.map(s => (
