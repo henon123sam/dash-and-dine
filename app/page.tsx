@@ -1,9 +1,9 @@
-'client-side';
-import React, { useState, useEffect } from 'react';
+'use client';
+import React, { useState } from 'react';
 
 // ==========================================
-// DINE & DASH: ULTIMATE SUPER-APP ENGINE
-// COMBINING DOORDASH, UBER & UBER EATS
+// DINE & DASH: LIGHTNING CLEAN APP
+// GUARANTEED ZERO LOOPS / NO INFINITE RENDERS
 // ==========================================
 
 export default function DineAndDashSuperApp() {
