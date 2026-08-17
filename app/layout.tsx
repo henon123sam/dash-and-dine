@@ -49,7 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        <meta name="google-site-verification" content="PASTE_YOUR_CODE_HERE" />
+        <meta name="google-site-verification" content="<meta name="google-site-verification" content="xtGcIBTWc5ZO630pzd367tkr212d0i9aFXDJh8tahVY" />" />
       </head>
       <body>{children}</body>
     </html>
