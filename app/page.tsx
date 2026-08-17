@@ -63,6 +63,26 @@ export default function DineAndDashApp() {
         { id: 'm3', name: 'Special Doro Wat', price: 480, desc: 'Spicy chicken stew with hard-boiled eggs.' },
         { id: 'm4', name: 'Kitfo Special', price: 520, desc: 'Minced lean beef in spiced butter.' }
       ]
+    },
+    {
+      id: 's3',
+      name: 'Simple Bistro | Summit',
+      category: 'Burger & Chicken',
+      rating: 4.9,
+      deliveryTime: '20 min',
+      banner: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=800&auto=format&fit=crop&q=60',
+      menu: [
+        { id: 'sb1', name: 'Single Chicken Junkie', price: 1414.5, desc: 'Crispy chicken fillet with signature sauce.' },
+        { id: 'sb2', name: 'Simple Special Burger', price: 1627.25, desc: 'Double patty burger with special house blend.' },
+        { id: 'sb3', name: 'Chicken Junkie', price: 1874.5, desc: 'Large portion of loaded chicken junkie burger.' },
+        { id: 'sb4', name: 'Chicken Burger', price: 1242.0, desc: 'Classic chicken burger with fresh lettuce and mayo.' },
+        { id: 'sb5', name: 'Double Saucy', price: 1627.25, desc: 'Extra loaded double patty with rich sauce.' },
+        { id: 'sb6', name: 'Beef Junkie Burger', price: 1627.25, desc: 'Juicy beef patty packed with flavor.' },
+        { id: 'sb7', name: 'Texas Style', price: 1627.25, desc: 'Smoky BBQ burger with onion rings and melted cheese.' },
+        { id: 'sb8', name: 'Double Swiss', price: 1627.25, desc: 'Rich double beef burger topped with Swiss cheese.' },
+        { id: 'sb9', name: 'Cheese Burger', price: 1161.5, desc: 'Classic cheeseburger with melted cheddar.' },
+        { id: 'sb10', name: 'Swiss Style', price: 1184.5, desc: 'Savory burger topped with melted Swiss cheese.' }
+      ]
     }
   ];
 
@@ -102,8 +122,8 @@ export default function DineAndDashApp() {
   };
 
   const handleSignUp = () => {
-    setCurrentUser(fullNameInput || phoneInput || emailInput || 'User');
-    setAuthView(null);
+    alert('Account created successfully! Please sign in with your credentials.');
+    setAuthView('signin');
   };
 
   if (authView) {
@@ -360,7 +380,7 @@ export default function DineAndDashApp() {
                   <div>
                     <h4 className="font-black text-xs text-white">{item.name}</h4>
                     <p className="text-[10px] text-neutral-400 mt-0.5">{item.desc}</p>
-                    <p className="text-xs font-black text-red-500 mt-2">{item.price} ETB</p>
+                    <p className="text-xs font-black text-red-500 mt-2">{item.price} Br</p>
                   </div>
                   <span className="w-7 h-7 bg-red-600/20 text-red-500 rounded-xl flex items-center justify-center font-black">+</span>
                 </div>
@@ -379,11 +399,11 @@ export default function DineAndDashApp() {
                 {cart.map(i => (
                   <div key={i.id} className="flex justify-between items-center text-xs">
                     <span className="font-bold text-white">{i.name} (x{i.quantity})</span>
-                    <span className="font-black text-red-500">{i.price * i.quantity} ETB</span>
+                    <span className="font-black text-red-500">{i.price * i.quantity} Br</span>
                   </div>
                 ))}
                 <div className="border-t border-neutral-800 pt-3 flex justify-between font-black text-sm text-white">
-                  <span>Total</span><span className="text-red-500">{subtotal} ETB</span>
+                  <span>Total</span><span className="text-red-500">{subtotal} Br</span>
                 </div>
                 <button onClick={() => { alert('Order placed successfully!'); setCart([]); setActiveTab('feed'); }} className="w-full py-3 bg-red-600 text-white rounded-xl font-black text-xs hover:bg-red-500 transition">Checkout</button>
               </div>
@@ -398,7 +418,7 @@ export default function DineAndDashApp() {
           <div className="bg-neutral-900 border border-neutral-800 rounded-2xl max-w-sm w-full p-6 space-y-4">
             <h3 className="font-black text-base text-white">{itemModal.name}</h3>
             <p className="text-xs text-neutral-400">{itemModal.desc}</p>
-            <p className="font-black text-sm text-red-500">{itemModal.price} ETB</p>
+            <p className="font-black text-sm text-red-500">{itemModal.price} Br</p>
             <div className="flex space-x-2 pt-2">
               <button onClick={() => setItemModal(null)} className="flex-1 py-2.5 bg-neutral-800 rounded-xl text-xs font-bold text-neutral-300 hover:bg-neutral-700">Cancel</button>
               <button onClick={() => addToCart(itemModal, selectedStore)} className="flex-1 py-2.5 bg-red-600 rounded-xl text-xs font-bold text-white hover:bg-red-500">Add to Cart</button>
