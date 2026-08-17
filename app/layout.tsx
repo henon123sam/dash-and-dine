@@ -1,19 +1,19 @@
 import './globals.css'
 
 export const metadata = {
-  metadataBase: new URL('https://yourdomain.com'),
+  metadataBase: new URL('https://dine-and-dash-official.vercel.app'),
   title: {
     default: 'Dine & Dash | Food & Ride Services in Addis Ababa',
     template: '%s | Dine & Dash',
   },
-  description: 'Order your favorite food and book rides instantly with Dine & Dash. Fast delivery and reliable transport all in one app.',
+  description: 'Order your favorite food and book rides instantly with Dine & Dash. Fast delivery and reliable transport all in one',
   keywords: ['food delivery Addis Ababa', 'ride hailing Addis Ababa', 'Dine and Dash app', 'order food online'],
   authors: [{ name: 'Henon Samuel' }],
   creator: 'Henon Samuel',
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://yourdomain.com',
+    url: 'https://dine-and-dash-official.vercel.app',
     title: 'Dine & Dash | Food & Ride Services',
     description: 'Order food and book rides instantly in Addis Ababa.',
     siteName: 'Dine & Dash',
@@ -26,12 +26,6 @@ export const metadata = {
       },
     ],
   },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Dine & Dash',
-    description: 'Food ordering and ride-hailing app.',
-    images: ['/og-image.jpg'],
-  },
   robots: {
     index: true,
     follow: true,
@@ -43,14 +37,14 @@ export const metadata = {
       'max-snippet': -1,
     },
   },
+  verification: {
+    google: 'xtGcIBTwC5Z063@pzd367tkr212d019aFXDjJh8',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <head>
-        <meta name="google-site-verification" content="<meta name="google-site-verification" content="xtGcIBTWc5ZO630pzd367tkr212d0i9aFXDJh8tahVY" />" />
-      </head>
       <body>{children}</body>
     </html>
   )
