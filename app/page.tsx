@@ -6,6 +6,8 @@ interface MenuItem {
   name: string;
   price: number;
   desc: string;
+  image: string;
+  category: 'Burger' | 'Chicken';
 }
 
 interface Store {
@@ -27,7 +29,7 @@ export default function DineAndDashApp() {
   const [authView, setAuthView] = useState<'signin' | 'signup' | 'forgot' | null>('signin');
   
   // Inputs
-  const [identifierInput, setIdentifierInput] = useState(''); // Email or Phone for sign in
+  const [identifierInput, setIdentifierInput] = useState('');
   const [fullNameInput, setFullNameInput] = useState('');
   const [phoneInput, setPhoneInput] = useState('');
   const [emailInput, setEmailInput] = useState('');
@@ -38,6 +40,8 @@ export default function DineAndDashApp() {
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [itemModal, setItemModal] = useState<MenuItem | null>(null);
+  const [modalQty, setModalQty] = useState(1);
+  const [selectedCategory, setSelectedCategory] = useState<'All' | 'Burger' | 'Chicken'>('All');
 
   const stores: Store[] = [
     {
@@ -48,8 +52,8 @@ export default function DineAndDashApp() {
       deliveryTime: '15 min',
       banner: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&auto=format&fit=crop&q=60',
       menu: [
-        { id: 'm1', name: 'Double Tomoca Macchiato', price: 65, desc: 'Bold dark-roasted espresso with velvety foam.' },
-        { id: 'm2', name: 'Butter Croissant', price: 80, desc: 'Freshly baked flaky pastry.' }
+        { id: 'm1', name: 'Double Tomoca Macchiato', price: 65, desc: 'Bold dark-roasted espresso with velvety foam.', image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=800&auto=format&fit=crop&q=60', category: 'Burger' },
+        { id: 'm2', name: 'Butter Croissant', price: 80, desc: 'Freshly baked flaky pastry.', image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&auto=format&fit=crop&q=60', category: 'Burger' }
       ]
     },
     {
@@ -60,8 +64,8 @@ export default function DineAndDashApp() {
       deliveryTime: '30 min',
       banner: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&auto=format&fit=crop&q=60',
       menu: [
-        { id: 'm3', name: 'Special Doro Wat', price: 480, desc: 'Spicy chicken stew with hard-boiled eggs.' },
-        { id: 'm4', name: 'Kitfo Special', price: 520, desc: 'Minced lean beef in spiced butter.' }
+        { id: 'm3', name: 'Special Doro Wat', price: 480, desc: 'Spicy chicken stew with hard-boiled eggs.', image: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=800&auto=format&fit=crop&q=60', category: 'Chicken' },
+        { id: 'm4', name: 'Kitfo Special', price: 520, desc: 'Minced lean beef in spiced butter.', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=800&auto=format&fit=crop&q=60', category: 'Burger' }
       ]
     },
     {
@@ -72,21 +76,21 @@ export default function DineAndDashApp() {
       deliveryTime: '20 min',
       banner: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=800&auto=format&fit=crop&q=60',
       menu: [
-        { id: 'sb1', name: 'Single Chicken Junkie', price: 1414.5, desc: 'Crispy chicken fillet with signature sauce.' },
-        { id: 'sb2', name: 'Simple Special Burger', price: 1627.25, desc: 'Double patty burger with special house blend.' },
-        { id: 'sb3', name: 'Chicken Junkie', price: 1874.5, desc: 'Large portion of loaded chicken junkie burger.' },
-        { id: 'sb4', name: 'Chicken Burger', price: 1242.0, desc: 'Classic chicken burger with fresh lettuce and mayo.' },
-        { id: 'sb5', name: 'Double Saucy', price: 1627.25, desc: 'Extra loaded double patty with rich sauce.' },
-        { id: 'sb6', name: 'Beef Junkie Burger', price: 1627.25, desc: 'Juicy beef patty packed with flavor.' },
-        { id: 'sb7', name: 'Texas Style', price: 1627.25, desc: 'Smoky BBQ burger with onion rings and melted cheese.' },
-        { id: 'sb8', name: 'Double Swiss', price: 1627.25, desc: 'Rich double beef burger topped with Swiss cheese.' },
-        { id: 'sb9', name: 'Cheese Burger', price: 1161.5, desc: 'Classic cheeseburger with melted cheddar.' },
-        { id: 'sb10', name: 'Swiss Style', price: 1184.5, desc: 'Savory burger topped with melted Swiss cheese.' }
+        { id: 'sb1', name: 'Single Chicken Junkie', price: 1414.5, desc: 'Crispy chicken fillet with signature sauce.', image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=800&auto=format&fit=crop&q=60', category: 'Chicken' },
+        { id: 'sb2', name: 'Simple Special Burger', price: 1627.25, desc: 'Double patty burger with special house blend.', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&auto=format&fit=crop&q=60', category: 'Burger' },
+        { id: 'sb3', name: 'Chicken Junkie', price: 1874.5, desc: 'Large portion of loaded chicken junkie burger.', image: 'https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=800&auto=format&fit=crop&q=60', category: 'Chicken' },
+        { id: 'sb4', name: 'Chicken Burger', price: 1242.0, desc: 'Classic chicken burger with fresh lettuce and mayo.', image: 'https://images.unsplash.com/photo-1615297258129-234e2e283253?w=800&auto=format&fit=crop&q=60', category: 'Chicken' },
+        { id: 'sb5', name: 'Double Saucy', price: 1627.25, desc: 'Extra loaded double patty with rich sauce.', image: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=800&auto=format&fit=crop&q=60', category: 'Burger' },
+        { id: 'sb6', name: 'Beef Junkie Burger', price: 1627.25, desc: 'Juicy beef patty packed with flavor.', image: 'https://images.unsplash.com/photo-1553979459-d2229cdc743b?w=800&auto=format&fit=crop&q=60', category: 'Burger' },
+        { id: 'sb7', name: 'Texas Style', price: 1627.25, desc: 'Smoky BBQ burger with onion rings and melted cheese.', image: 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=800&auto=format&fit=crop&q=60', category: 'Burger' },
+        { id: 'sb8', name: 'Double Swiss', price: 1627.25, desc: 'Rich double beef burger topped with Swiss cheese.', image: 'https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?w=800&auto=format&fit=crop&q=60', category: 'Burger' },
+        { id: 'sb9', name: 'Cheese Burger', price: 1161.5, desc: 'Classic cheeseburger with melted cheddar.', image: 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=800&auto=format&fit=crop&q=60', category: 'Burger' },
+        { id: 'sb10', name: 'Swiss Style', price: 1184.5, desc: 'Savory burger topped with melted Swiss cheese.', image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=800&auto=format&fit=crop&q=60', category: 'Burger' }
       ]
     }
   ];
 
-  const addToCart = (item: MenuItem, store: Store) => {
+  const addToCart = (item: MenuItem, store: Store, qty: number) => {
     if (selectedStore && selectedStore.id !== store.id) {
       if (!window.confirm("Switch store? This will reset your current cart.")) return;
       setCart([]);
@@ -95,23 +99,22 @@ export default function DineAndDashApp() {
     setCart(prevCart => {
       const existing = prevCart.find(c => c.id === item.id);
       if (existing) {
-        return prevCart.map(c => c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c);
+        return prevCart.map(c => c.id === item.id ? { ...c, quantity: c.quantity + qty } : c);
       }
-      return [...prevCart, { ...item, quantity: 1 }];
+      return [...prevCart, { ...item, quantity: qty }];
     });
     setItemModal(null);
+    setModalQty(1);
   };
 
   const subtotal = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
   const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
 
-  // Helper to resolve display name based on user rules
   const getDisplayName = (raw: string | null) => {
     if (!raw) return 'Guest';
     if (raw === 'Guest' || raw === 'Google User') return raw;
     if (raw.includes('@')) {
-      const localPart = raw.split('@')[0];
-      return localPart;
+      return raw.split('@')[0];
     }
     return raw;
   };
@@ -129,9 +132,9 @@ export default function DineAndDashApp() {
   if (authView) {
     return (
       <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans flex items-center justify-center p-4">
-        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl max-w-md w-full p-8 space-y-6">
+        <div className="bg-neutral-900 border border-neutral-800 rounded-3xl max-w-md w-full p-8 space-y-6 shadow-2xl shadow-red-950/20">
           <div className="text-center space-y-2">
-            <h1 className="text-xl font-black tracking-tight text-white">
+            <h1 className="text-2xl font-black tracking-tight text-white">
               DINE <span className="text-red-500">&</span> DASH
             </h1>
             <p className="text-xs text-neutral-400">
@@ -152,7 +155,7 @@ export default function DineAndDashApp() {
               />
               <button
                 onClick={() => { alert('Password reset instructions sent!'); setAuthView('signin'); }}
-                className="w-full py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black text-xs transition"
+                className="w-full py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black text-xs transition shadow-lg shadow-red-600/30"
               >
                 Send Reset Link
               </button>
@@ -199,22 +202,13 @@ export default function DineAndDashApp() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white text-xs font-bold focus:outline-none"
                 >
-                  {showPassword ? (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m14.41 14.41l-3.59-3.59" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  )}
+                  {showPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
 
               <button
                 onClick={handleSignUp}
-                className="w-full py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black text-xs transition"
+                className="w-full py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black text-xs transition shadow-lg shadow-red-600/30"
               >
                 Create Account
               </button>
@@ -255,22 +249,13 @@ export default function DineAndDashApp() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white text-xs font-bold focus:outline-none"
                 >
-                  {showPassword ? (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m14.41 14.41l-3.59-3.59" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  )}
+                  {showPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
 
               <button
                 onClick={handleSignIn}
-                className="w-full py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black text-xs transition"
+                className="w-full py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black text-xs transition shadow-lg shadow-red-600/30"
               >
                 Sign In
               </button>
@@ -298,9 +283,6 @@ export default function DineAndDashApp() {
                 onClick={() => { setCurrentUser('Guest'); setAuthView(null); }}
                 className="w-full py-3 bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-300 rounded-xl font-bold text-xs transition flex items-center justify-center space-x-2"
               >
-                <svg className="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
                 <span>Continue as Guest</span>
               </button>
 
@@ -322,7 +304,7 @@ export default function DineAndDashApp() {
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans flex flex-col">
       {/* HEADER */}
-      <header className="bg-neutral-900 border-b border-neutral-800 sticky top-0 z-50 px-6 py-3 flex items-center justify-between">
+      <header className="bg-neutral-900/90 backdrop-blur-md border-b border-neutral-800 sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between">
         <div onClick={() => { setActiveTab('feed'); setSelectedStore(null); }} className="cursor-pointer flex items-center space-x-2">
           <h1 className="font-black text-sm tracking-tight text-white">
             DINE <span className="text-red-500">&</span> DASH
@@ -330,9 +312,9 @@ export default function DineAndDashApp() {
         </div>
 
         <div className="flex items-center space-x-2">
-          <button onClick={() => setActiveTab('feed')} className={`px-3 py-1.5 rounded-xl text-xs font-black ${activeTab === 'feed' ? 'bg-red-600 text-white' : 'bg-neutral-800 text-neutral-300'}`}>Feed</button>
-          <button onClick={() => setActiveTab('cart')} className={`px-3 py-1.5 rounded-xl text-xs font-black ${activeTab === 'cart' ? 'bg-red-600 text-white' : 'bg-neutral-800 text-neutral-300'}`}>Cart ({totalItems})</button>
-          <button onClick={() => { setCurrentUser(null); setAuthView('signin'); }} className="px-3 py-1.5 rounded-xl text-xs font-bold bg-neutral-800 text-neutral-300 hover:bg-neutral-700">Sign Out</button>
+          <button onClick={() => setActiveTab('feed')} className={`px-4 py-2 rounded-xl text-xs font-black transition ${activeTab === 'feed' ? 'bg-red-600 text-white shadow-lg shadow-red-600/30' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'}`}>Feed</button>
+          <button onClick={() => setActiveTab('cart')} className={`px-4 py-2 rounded-xl text-xs font-black transition ${activeTab === 'cart' ? 'bg-red-600 text-white shadow-lg shadow-red-600/30' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'}`}>Cart ({totalItems})</button>
+          <button onClick={() => { setCurrentUser(null); setAuthView('signin'); }} className="px-3 py-2 rounded-xl text-xs font-bold bg-neutral-800 text-neutral-300 hover:bg-neutral-700 transition">Sign Out</button>
         </div>
       </header>
 
@@ -340,24 +322,26 @@ export default function DineAndDashApp() {
       <main className="flex-1 max-w-4xl w-full mx-auto p-6">
         {activeTab === 'feed' && !selectedStore && (
           <div className="space-y-6">
-            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 flex justify-between items-center">
+            <div className="bg-gradient-to-r from-red-950/40 via-neutral-900 to-neutral-900 border border-neutral-800 rounded-3xl p-6 flex justify-between items-center shadow-xl">
               <div>
-                <h2 className="text-xl font-black text-white">Welcome, {getDisplayName(currentUser)}!</h2>
-                <p className="text-xs text-neutral-400 mt-1">Choose a restaurant below to view their menu.</p>
+                <h2 className="text-2xl font-black text-white">Welcome, {getDisplayName(currentUser)}! 🔥</h2>
+                <p className="text-xs text-neutral-400 mt-1">Pick a restaurant and satisfy your cravings right away.</p>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {stores.map(s => (
-                <div key={s.id} onClick={() => setSelectedStore(s)} className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden cursor-pointer hover:border-red-500 transition">
-                  <div className="h-36 relative">
-                    <img src={s.banner} alt={s.name} className="w-full h-full object-cover" />
+                <div key={s.id} onClick={() => setSelectedStore(s)} className="bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden cursor-pointer hover:border-red-500 transition group shadow-lg">
+                  <div className="h-44 relative overflow-hidden">
+                    <img src={s.banner} alt={s.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/80 via-transparent to-transparent"></div>
+                    <span className="absolute bottom-3 left-3 bg-neutral-950/80 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black text-red-400 border border-neutral-800">⏱️ {s.deliveryTime}</span>
                   </div>
-                  <div className="p-4 flex justify-between items-center">
+                  <div className="p-5 flex justify-between items-center">
                     <div>
-                      <h3 className="font-black text-sm text-white">{s.name}</h3>
-                      <span className="text-[10px] text-neutral-400">⏱️ {s.deliveryTime} • {s.category}</span>
+                      <h3 className="font-black text-base text-white">{s.name}</h3>
+                      <span className="text-xs text-neutral-400">{s.category}</span>
                     </div>
-                    <span className="text-red-500 font-bold text-xs">View Menu →</span>
+                    <span className="bg-red-600/10 text-red-500 font-black text-xs px-3 py-2 rounded-xl group-hover:bg-red-600 group-hover:text-white transition">Explore →</span>
                   </div>
                 </div>
               ))}
@@ -366,23 +350,49 @@ export default function DineAndDashApp() {
         )}
 
         {activeTab === 'feed' && selectedStore && (
-          <div className="space-y-4">
-            <button onClick={() => setSelectedStore(null)} className="text-xs text-neutral-400 font-bold bg-neutral-900 px-3 py-1.5 rounded-xl border border-neutral-800 hover:text-white">← Back to Restaurants</button>
-            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 flex justify-between items-center">
-              <div>
-                <h2 className="text-xl font-black text-white">{selectedStore.name}</h2>
-                <p className="text-xs text-neutral-400">{selectedStore.category} • ⏱️ {selectedStore.deliveryTime}</p>
+          <div className="space-y-6">
+            <button onClick={() => setSelectedStore(null)} className="text-xs text-neutral-400 font-bold bg-neutral-900 px-4 py-2 rounded-xl border border-neutral-800 hover:text-white transition">← Back to Restaurants</button>
+            
+            {/* Store Banner */}
+            <div className="relative h-48 rounded-3xl overflow-hidden border border-neutral-800 shadow-xl">
+              <img src={selectedStore.banner} alt={selectedStore.name} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent"></div>
+              <div className="absolute bottom-5 left-5 space-y-1">
+                <h2 className="text-2xl font-black text-white">{selectedStore.name}</h2>
+                <p className="text-xs text-neutral-300 font-medium">{selectedStore.category} • ⏱️ {selectedStore.deliveryTime}</p>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {selectedStore.menu.map(item => (
-                <div key={item.id} onClick={() => setItemModal(item)} className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 cursor-pointer flex justify-between items-center hover:border-red-500 transition">
-                  <div>
-                    <h4 className="font-black text-xs text-white">{item.name}</h4>
-                    <p className="text-[10px] text-neutral-400 mt-0.5">{item.desc}</p>
-                    <p className="text-xs font-black text-red-500 mt-2">{item.price} Br</p>
+
+            {/* Category Filter Pills */}
+            <div className="flex space-x-2">
+              {(['All', 'Burger', 'Chicken'] as const).map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-4 py-2 rounded-xl text-xs font-black transition ${selectedCategory === cat ? 'bg-red-600 text-white shadow-lg shadow-red-600/30' : 'bg-neutral-900 text-neutral-400 border border-neutral-800 hover:text-white'}`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Menu Items Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {selectedStore.menu
+                .filter(item => selectedCategory === 'All' || item.category === selectedCategory)
+                .map(item => (
+                <div key={item.id} onClick={() => { setItemModal(item); setModalQty(1); }} className="bg-neutral-900 border border-neutral-800 rounded-3xl p-4 cursor-pointer flex items-center justify-between hover:border-red-500 transition group shadow-md">
+                  <div className="flex items-center space-x-4 pr-3">
+                    <img src={item.image} alt={item.name} className="w-20 h-20 rounded-2xl object-cover border border-neutral-800 group-hover:scale-105 transition" />
+                    <div className="space-y-1">
+                      <h4 className="font-black text-xs text-white group-hover:text-red-400 transition">{item.name}</h4>
+                      <p className="text-[10px] text-neutral-400 line-clamp-2">{item.desc}</p>
+                      <p className="text-xs font-black text-red-500">{item.price} Br</p>
+                    </div>
                   </div>
-                  <span className="w-7 h-7 bg-red-600/20 text-red-500 rounded-xl flex items-center justify-center font-black">+</span>
+                  <button className="w-9 h-9 bg-red-600/20 text-red-500 rounded-2xl flex items-center justify-center font-black group-hover:bg-red-600 group-hover:text-white transition shadow">
+                    +
+                  </button>
                 </div>
               ))}
             </div>
@@ -391,37 +401,69 @@ export default function DineAndDashApp() {
 
         {activeTab === 'cart' && (
           <div className="max-w-md mx-auto space-y-4">
-            <h2 className="text-xl font-black text-white">Your Cart</h2>
+            <h2 className="text-2xl font-black text-white">Your Cart 🛒</h2>
             {cart.length === 0 ? (
-              <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 text-center text-xs text-neutral-400">Your cart is empty.</div>
+              <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-10 text-center text-xs text-neutral-400 shadow-xl">Your cart is empty.</div>
             ) : (
-              <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 space-y-4">
+              <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 space-y-5 shadow-xl">
                 {cart.map(i => (
-                  <div key={i.id} className="flex justify-between items-center text-xs">
-                    <span className="font-bold text-white">{i.name} (x{i.quantity})</span>
+                  <div key={i.id} className="flex justify-between items-center text-xs border-b border-neutral-800/60 pb-3">
+                    <div className="flex items-center space-x-3">
+                      <img src={i.image} alt={i.name} className="w-10 h-10 rounded-xl object-cover" />
+                      <div>
+                        <span className="font-bold text-white block">{i.name}</span>
+                        <span className="text-[10px] text-neutral-400">Qty: {i.quantity}</span>
+                      </div>
+                    </div>
                     <span className="font-black text-red-500">{i.price * i.quantity} Br</span>
                   </div>
                 ))}
-                <div className="border-t border-neutral-800 pt-3 flex justify-between font-black text-sm text-white">
+                <div className="pt-2 flex justify-between font-black text-base text-white">
                   <span>Total</span><span className="text-red-500">{subtotal} Br</span>
                 </div>
-                <button onClick={() => { alert('Order placed successfully!'); setCart([]); setActiveTab('feed'); }} className="w-full py-3 bg-red-600 text-white rounded-xl font-black text-xs hover:bg-red-500 transition">Checkout</button>
+                <button onClick={() => { alert('Order placed successfully!'); setCart([]); setActiveTab('feed'); }} className="w-full py-3.5 bg-red-600 text-white rounded-2xl font-black text-xs hover:bg-red-500 transition shadow-lg shadow-red-600/30">Checkout Now</button>
               </div>
             )}
           </div>
         )}
       </main>
 
-      {/* ITEM MODAL */}
+      {/* ITEM MODAL WITH QTY SELECTOR */}
       {itemModal && selectedStore && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl max-w-sm w-full p-6 space-y-4">
-            <h3 className="font-black text-base text-white">{itemModal.name}</h3>
-            <p className="text-xs text-neutral-400">{itemModal.desc}</p>
-            <p className="font-black text-sm text-red-500">{itemModal.price} Br</p>
-            <div className="flex space-x-2 pt-2">
-              <button onClick={() => setItemModal(null)} className="flex-1 py-2.5 bg-neutral-800 rounded-xl text-xs font-bold text-neutral-300 hover:bg-neutral-700">Cancel</button>
-              <button onClick={() => addToCart(itemModal, selectedStore)} className="flex-1 py-2.5 bg-red-600 rounded-xl text-xs font-bold text-white hover:bg-red-500">Add to Cart</button>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-3xl max-w-sm w-full p-6 space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="h-44 rounded-2xl overflow-hidden relative border border-neutral-800">
+              <img src={itemModal.image} alt={itemModal.name} className="w-full h-full object-cover" />
+            </div>
+            <div className="space-y-1.5">
+              <h3 className="font-black text-base text-white">{itemModal.name}</h3>
+              <p className="text-xs text-neutral-400">{itemModal.desc}</p>
+              <p className="font-black text-base text-red-500 pt-1">{itemModal.price} Br</p>
+            </div>
+
+            {/* Quantity Selector (- 1 +) */}
+            <div className="flex items-center justify-between bg-neutral-950 border border-neutral-800 rounded-2xl p-3">
+              <span className="text-xs font-bold text-neutral-300">Quantity</span>
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => setModalQty(Math.max(1, modalQty - 1))}
+                  className="w-8 h-8 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl font-black flex items-center justify-center transition border border-neutral-800"
+                >
+                  -
+                </button>
+                <span className="text-sm font-black text-white w-4 text-center">{modalQty}</span>
+                <button
+                  onClick={() => setModalQty(modalQty + 1)}
+                  className="w-8 h-8 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl font-black flex items-center justify-center transition border border-neutral-800"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <div className="flex space-x-3 pt-2">
+              <button onClick={() => setItemModal(null)} className="flex-1 py-3 bg-neutral-800 rounded-2xl text-xs font-bold text-neutral-300 hover:bg-neutral-700 transition">Cancel</button>
+              <button onClick={() => addToCart(itemModal, selectedStore, modalQty)} className="flex-1 py-3 bg-red-600 rounded-2xl text-xs font-black text-white hover:bg-red-500 transition shadow-lg shadow-red-600/30">Add to Cart</button>
             </div>
           </div>
         </div>
